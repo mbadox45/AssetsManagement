@@ -1,24 +1,27 @@
-import moment from "moment/moment"
+import moment from "moment/moment";
 const date_now = moment().format('DD-MM-YYYY')
 const date_ago =  moment().subtract(10, 'days').format('DD-MM-YYYY');
 
-// Public Access
-export const URL_WEB = 'http://36.92.181.10:3777/';
-export const URL_API = 'http://36.92.181.10:3888/api/';
-export const URL_WEB_Portal = 'http://192.168.1.223:8085/';
-export const URL_API_Portal = 'http://36.92.181.10:4763/api/';
+// API
+// import GroupService from "./GroupService";
 
-// // Server Access
-// export const URL_WEB = 'http://192.168.1.223:8086/';
-// export const URL_API = 'http://192.168.1.223:3001/api/';
+// // Public Access
+// export const URL_WEB = 'http://36.92.181.10:3777/';
+// export const URL_API = 'http://36.92.181.10:3888/api/';
 // export const URL_WEB_Portal = 'http://192.168.1.223:8085/';
 // export const URL_API_Portal = 'http://36.92.181.10:4763/api/';
 
-// // Local Access
-// export const URL_WEB = 'http://localhost:8086/';
-// export const URL_API = 'http://localhost:8000/api/';
-// export const URL_WEB_Portal = 'http://localhost:8085/';
+// // Server Access
+// export const URL_WEB = 'http://192.168.1.223:8086/';
+// export const URL_API = 'http://192.168.1.223:3002/api/';
+export const URL_WEB_Portal = 'http://192.168.1.223:8085/';
 // export const URL_API_Portal = 'http://36.92.181.10:4763/api/';
+
+// Local Access
+export const URL_WEB = 'http://localhost:8087/';
+export const URL_API = 'http://localhost:8000/api/';
+// export const URL_WEB_Portal = 'http://localhost:8085/';
+export const URL_API_Portal = 'http://36.92.181.10:4763/api/';
 
 // List for dropdown
 export const listAkses = [
@@ -51,6 +54,27 @@ export const typeAnswer = [
     { name: 'File', type: 'file', icon:'/layout/icon/file.png' },
     { name: 'Range', type: 'range', icon:'/layout/icon/range.png' },
 ];
+export const listKondisi = [
+    { name: 'Baru', kondisi: 'baru' },
+    { name: 'Baik', kondisi: 'baik' },
+    { name: 'Rusak', kondisi: 'rusak' },
+    { name: 'Perbaikan', kondisi: 'perbaikan' },
+    { name: 'Lelang', kondisi: 'lelang' },
+];
+export const listCostCentre = [
+    { name: 'Auxilary', cost_centre: 'Auxilary' },
+    { name: 'Refinery', cost_centre: 'Refinery' },
+    { name: 'Fractination', cost_centre: 'Fractination' },
+    { name: 'Packaging', cost_centre: 'Packaging' },
+];
+
+export const fieldFixedPengakuan = [
+    { name: 'Kode Aktiva', code: 'KA' },
+    { name: 'Kode Penyusutan', code: 'KP' },
+    { name: 'Debet', code: 'DE' },
+];
+
+export const month = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
 // Menu Pertanyaan
 export const settingPertanyaan = [
@@ -95,6 +119,54 @@ export const settingPertanyaan = [
 export const BreadcrumbHome =  { icon: 'pi pi-home', to: '/home' };
 
 // Variable default Forms
+export const formAdjustment = {
+    id: 0,
+    nama_margin: '',
+    kode_margin: '',
+    nama_loss: '',
+    kode_loss: '',
+}
+export const formArea = {
+    id: 0,
+    nama_area: '',
+    locations: [],
+}
+export const formSupplier = {
+    id: 0,
+    nama: '',
+    kode: '',
+    keterangan: '',
+}
+export const formGroup = {
+    id: 0,
+    nama_grup: '',
+    kode_aktiva_tetap: '',
+    kode_akm_penyusutan: '',
+    format: '',
+    subGroups: [],
+}
+export const formAsset = {
+    id: 0,
+    id_grup: null,
+    id_sub_grup: null,
+    nama: '',
+    brand: '',
+    masa_manfaat: '',
+    tgl_perolehan: '',
+    nilai_perolehan: null,
+    nilai_depresiasi_awal: null,
+    id_lokasi: null,
+    id_departemen: null,
+    id_pic: null,
+    cost_centre: '',
+    kondisi: '',
+    keterangan: '',
+    id_supplier: null,
+    id_kode_adjustment: null,
+    fairValue: null,
+    valueInUse: null,
+    spesifikasi: [],
+}
 export const formSurvey = {
     id: 0,
     desc: '',
@@ -105,14 +177,19 @@ export const formSurvey = {
     value:[],
     question_order:'',
 }
-export const formUser = {
-    id: 0,
-    name: '',
-    email: '',
-}
 export const formCategory = {
     id: 0,
     name: '',
+}
+export const formFairValue = {
+    id: null,
+    id_asset: null,
+    nilai: null,
+}
+export const formValueInUse = {
+    id: null,
+    id_asset: null,
+    nilai: null,
 }
 export const formQuestion = {
     id: 0,
@@ -127,21 +204,7 @@ export const formQuestion = {
 
 
 // Data Bodong
-export const listKategori = [
-    {id:1, name:'Kategori 1'},
-    {id:2, name:'Kategori 2'},
-    {id:3, name:'Kategori 3'},
-]
-export const listuser = [
-    {id:1, name:'CV Dimas Love You', email:'marketing@dly.co.id'},
-    {id:2, name:'CV Dimas Karya', email:'marketing@cdk.co.id'},
-    {id:3, name:'PT Mencari Cinta Dimas', email:'marketing@mcd.co.id'},
-]
-export const listSurvey = [
-    {id:1, title:'Perkembangan Skill DCD', desc:'Dimas sedang diuji para pakar peneliti UNESCO terkait kemampuan bertanyanya.', from: date_ago, to: date_now, status:true},
-    {id:2, title:'Hasil Skill Dimas', desc:'Hasil pengujian skill Dimas terhadap UNESCO, Erdogan ketar-ketir', from: date_ago, to: date_now, status:false},
-    {id:3, title:'Dimas pembawa perdamaian dunia', desc:'Elite global ketar-ketir melihat skill Dimas', from: date_ago, to: date_now, status:true},
-]
+// export const listGroup = GroupService.getGroupData;
 
 export const FormPreview = [
     {

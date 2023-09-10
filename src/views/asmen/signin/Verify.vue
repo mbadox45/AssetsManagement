@@ -15,10 +15,10 @@ onMounted(() => {
     loadParams()
 });
 
-const loadParams = () => {
+const loadParams = async () => {
     const token = route.query.token;
     // const id_user = route.params.id;
-    // console.log(id_user,token)
+    console.log(token)
     if (token == null || token == '') {
         setTimeout(function() {
             window.close();
@@ -44,26 +44,61 @@ const loadParams = () => {
                         'Authorization': `Bearer ${token}`,
                     }
                 }
-                VerifyService.getUser(idUser.value,header).then(res => {
-                    const load = res.data;
+                try {
+                    const verify = await VerifyService.getUser(idUser.value,header);
+                    const load = verify.data;
                     const data = load.data;
-                    const roles = "admin";
-                    const pushdata = {
-                        id :  idUser.value,
-                        email : data.email,
-                        name : data.name,
-                        type: "admin",
+                    if (data !== null) {
+                        console.log(data);
+                        const akses = await VerifyService.getAksesApp(15,header);
+                        const load_akses = akses.data;
+                        const data_akses = load_akses.data;
+                        const filteredData = data_akses.filter(item => item.user_id === Number(idUser.value));
+                        if (filteredData.length > 0) {
+                            const pushdata = {
+                                id :  idUser.value,
+                                email : data.email,
+                                name : data.name,
+                                level: filteredData[0].level_akses,
+                            }
+                            localStorage.setItem('roles', filteredData[0].level_akses);
+                            localStorage.setItem('usertoken', token);
+                            localStorage.setItem('payload', JSON.stringify(pushdata));
+                            setTimeout(function() {
+                                loadings.value = false;
+                                window.location.replace(`${URL_WEB}home`);
+                                // router.push('/home')
+                            }, time.value);
+                        } else {
+                            window.close();
+                        }
+                    } else {
+                        window.close();
                     }
-                    localStorage.setItem('roles', roles);
-                    localStorage.setItem('usertoken', token);
-                    localStorage.setItem('payload', JSON.stringify(pushdata));
-                    console.log(data);
-                })
-                setTimeout(function() {
-                    loadings.value = false;
-                    window.location.replace(`${URL_WEB}home`);
-                    // router.push('/home')
-                }, time.value);
+                } catch (error) {
+                    console.log(error);
+                    window.close();
+                }
+                // VerifyService.getUser(idUser.value,header).then(res => {
+                //     const load = res.data;
+                //     const data = load.data;
+                //     const roles = "admin";
+                //     const pushdata = {
+                //         id :  idUser.value,
+                //         email : data.email,
+                //         name : data.name,
+                //         type: "admin",
+                //     }
+                //     localStorage.setItem('roles', roles);
+                //     localStorage.setItem('usertoken', token);
+                //     localStorage.setItem('payload', JSON.stringify(pushdata));
+                //     console.log(data);
+                // })
+                // setTimeout(function() {
+                //     loadings.value = false;
+                //     window.location.replace(`${URL_WEB}home`);
+                //     // router.push('/home')
+                // }, time.value);
             } else {
                 setTimeout(function() {
                     loadings.value = false;

@@ -7,7 +7,9 @@ onMounted(() => {
 const load = () => {
     localStorage.removeItem('usertoken');
     localStorage.removeItem('payload');
-    router.push('/auth/login')
+    // router.push('/auth/login')
+    window.close();
+
 }
 </script>
 

@@ -1,4 +1,4 @@
-<script setup>
+<script setup type="text/javascript">
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
 import { useLayout } from '@/layout/composables/layout';
 import { useRouter, useRoute } from 'vue-router';
@@ -50,13 +50,15 @@ const onSettingsClick = () => {
                 localStorage.removeItem('usertoken');
                 localStorage.removeItem('payload');
                 localStorage.removeItem('roles');
-                router.push('/auth/login');
+                // router.push('/auth/login');
+                window.close();
             }
         } catch (error) {
             localStorage.removeItem('usertoken');
             localStorage.removeItem('payload');
             localStorage.removeItem('roles');
-            router.push('/auth/login');
+            window.close();
+            // router.push('/auth/login');
         }
     } else {
         localStorage.removeItem('usertoken');
@@ -98,7 +100,7 @@ const isOutsideClicked = (event) => {
 </script>
 
 <template>
-    <div class="layout-topbar bg-cyan-200 dark">
+    <div class="layout-topbar bg-pink-800 dark">
         <Dialog v-model:visible="displayConfirmation" :style="{ width: '350px' }" :modal="true" position="topright" :draggable="false">
             <template #header>
                 <h4>Sign Out</h4>
@@ -115,14 +117,14 @@ const isOutsideClicked = (event) => {
         <router-link to="/" class="layout-topbar-logo justify-content-center">
             <!-- <img src="/layout/inl.png" alt="PT Industri Nabati Lestari" /> -->
             <!-- <img :src="logoUrl" alt="logo" /> -->
-            <span class="ml-2 text-cyan-800">SURVEY - INL</span>
+            <span class="ml-2 text-white font-light"><i class="pi pi-chart-bar text-yellow-500 font-bold text-4xl mr-2"></i> Asset Management</span>
         </router-link>
 
-        <button class="p-link layout-menu-button layout-topbar-button text-cyan-800" @click="onMenuToggle()">
+        <button class="p-link layout-menu-button layout-topbar-button text-yellow-500" @click="onMenuToggle()">
             <i class="pi pi-bars"></i>
         </button>
 
-        <button class="p-link layout-topbar-menu-button layout-topbar-button text-cyan-800" @click="onTopBarMenuButton()">
+        <button class="p-link layout-topbar-menu-button layout-topbar-button text-yellow-500" @click="onTopBarMenuButton()">
             <i class="pi pi-ellipsis-v"></i>
         </button>
 
@@ -135,7 +137,7 @@ const isOutsideClicked = (event) => {
                 <i class="pi pi-user"></i>
                 <span>Profile</span>
             </button> -->
-            <button @click="displayConfirmation = true" class="p-link layout-topbar-button text-cyan-800">
+            <button @click="displayConfirmation = true" class="p-link layout-topbar-button text-yellow-500">
                 <i class="pi pi-sign-out"></i>
                 <span>Sign Out</span>
             </button>

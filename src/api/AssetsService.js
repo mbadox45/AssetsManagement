@@ -1,0 +1,33 @@
+import http from './http-auth'
+
+export default new class AssetsService{
+    // Fixed Assets
+    addAssets(data){
+        return http.post(`fixed-asset/add`, data);
+    }
+    getAssets(data){
+        return http.post(`fixed-asset`, data);
+    }
+
+    // Fair Value Asset
+    getFairValue(id_asset){
+        return http.get(`fair-value/asset/${id_asset}`);
+    }
+    addFairValue(id_asset, data){
+        return http.post(`fair-value/add/${id_asset}`, data);
+    }
+    updateFairValue(id_asset, id, data){
+        return http.post(`fair-value/update/${id_asset}/${id}`, data);
+    }
+
+    // Value In Use Asset
+    getValueInUse(id_asset){
+        return http.get(`value-in-use/asset/${id_asset}`);
+    }
+    addValueInUse(id_asset, data){
+        return http.post(`value-in-use/add/${id_asset}`, data);
+    }
+    updateValueInUse(id_asset, id, data){
+        return http.post(`value-in-use/update/${id_asset}/${id}`, data);
+    }
+}

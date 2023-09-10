@@ -33,6 +33,39 @@ const Menu = () => {
                 ]
             },
         ];
+    } else if (roles == '1') {
+        model.value = [
+            {
+                label: 'Home',
+                items: [{ label: 'Home', icon: 'pi pi-fw pi-home', to: '/home' }]
+            },
+            {
+                label: 'BAST',
+                items: [
+                    { label: 'Submission', icon: 'pi pi-fw pi-verified', to: '/serah-terima', },
+                ]
+            },
+        ];
+    } else if (roles == '8') {
+        model.value = [
+            {
+                label: 'Home',
+                items: [{ label: 'Home', icon: 'pi pi-fw pi-home', to: '/home' }]
+            },
+            {
+                label: 'Master',
+                items: [
+                    { label: 'Area', icon: 'pi pi-fw pi-map-marker', to: '/area', },
+                    { label: 'Group', icon: 'pi pi-fw pi-sitemap', to: '/group',},
+                ]
+            },
+            {
+                label: 'Asset',
+                items: [
+                    { label: 'Fixed Assets', icon: 'pi pi-fw pi-check-circle', to: '/fix-asset',},
+                ]
+            },
+        ];
     } else {
         model.value = [
             {
@@ -41,13 +74,26 @@ const Menu = () => {
             },
             
             {
-                label: 'Management',
+                label: 'Master',
                 items: [
-                    { label: 'Users', icon: 'pi pi-fw pi-users', to: '/users',},
-                    // { label: 'Categories', icon: 'pi pi-fw pi-check-square', to: '/categories', },
-                    { label: 'Questions', icon: 'pi pi-fw pi-question-circle', to: '/questions', },
-                    { label: 'Survey', icon: 'pi pi-fw pi-comments', to: '/survey', },
-                    // { label: 'Response', icon: 'pi pi-fw pi-reply', to: '/respon', },
+                    { label: 'Adjustment', icon: 'pi pi-fw pi-cog', to: '/adjustment', },
+                    { label: 'Area', icon: 'pi pi-fw pi-map-marker', to: '/area', },
+                    { label: 'Supplier', icon: 'pi pi-fw pi-box', to: '/supplier',},
+                    { label: 'Group', icon: 'pi pi-fw pi-sitemap', to: '/group',},
+                ]
+            },
+            {
+                label: 'Asset',
+                items: [
+                    { label: 'Fixed Assets', icon: 'pi pi-fw pi-check-circle', to: '/fix-asset',},
+                ]
+            },
+            {
+                label: 'Journal',
+                items: [
+                    { label: 'Asset Recognition', icon: 'pi pi-fw pi-star', to: '/pengakuan',},
+                    { label: 'Asset Depreciation', icon: 'pi pi-fw pi-sun', to: '/depresiasi',},
+                    { label: 'Correction', icon: 'pi pi-fw pi-bookmark', to: '/koreksi',},
                 ]
             },
         ]

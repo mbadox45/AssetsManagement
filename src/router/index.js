@@ -43,90 +43,105 @@ const router = createRouter({
                 {
                     path: '/home',
                     name: 'home',
-                    component: () => import('@/views/survey/administrator/pages/Home.vue'),
+                    component: () => import('@/views/asmen/home/Home.vue'),
+                    meta:{
+                        requiresAuth: true,
+                        admin:true,
+                    }
+                },
+
+                // Asset Management
+                // Master
+                {
+                    path: '/adjustment',
+                    name: 'adjustment',
+                    component: () => import('@/views/asmen/master/adjustment/Index.vue'),
                     meta:{
                         requiresAuth: true,
                         admin:true,
                     }
                 },
                 {
-                    path: '/users',
-                    name: 'users',
-                    component: () => import('@/views/survey/administrator/pages/Users.vue'),
+                    path: '/area',
+                    name: 'area',
+                    component: () => import('@/views/asmen/master/area/Index.vue'),
                     meta:{
                         requiresAuth: true,
                         admin:true,
                     }
                 },
                 {
-                    path: '/categories',
-                    name: 'categories',
-                    component: () => import('@/views/survey/administrator/pages/Categories.vue'),
+                    path: '/supplier',
+                    name: 'supplier',
+                    component: () => import('@/views/asmen/master/supplier/Index.vue'),
                     meta:{
                         requiresAuth: true,
                         admin:true,
                     }
                 },
                 {
-                    path: '/questions',
-                    name: 'questions',
-                    component: () => import('@/views/survey/administrator/pages/Questions.vue'),
+                    path: '/group',
+                    name: 'group',
+                    component: () => import('@/views/asmen/master/group/Index.vue'),
+                    meta:{
+                        requiresAuth: true,
+                        admin:true,
+                    }
+                },
+                // Assets
+                {
+                    path: '/fix-asset',
+                    name: 'fix-asset',
+                    component: () => import('@/views/asmen/aset/fixedassets/Index.vue'),
                     meta:{
                         requiresAuth: true,
                         admin:true,
                     }
                 },
                 {
-                    path: '/survey',
-                    name: 'survey',
-                    component: () => import('@/views/survey/administrator/pages/Surveys/Index.vue'),
+                    path: '/form-asset/:cond',
+                    name: 'form-asset',
+                    component: () => import('@/views/asmen/aset/fixedassets/FormAssets.vue'),
+                    meta:{
+                        requiresAuth: true,
+                        admin:true,
+                    }
+                },
+                // Journal
+                {
+                    path: '/pengakuan',
+                    name: 'pengakuan',
+                    component: () => import('@/views/asmen/jurnal/Pengakuan.vue'),
                     meta:{
                         requiresAuth: true,
                         admin:true,
                     }
                 },
                 {
-                    path: '/edit-question/:id',
-                    name: 'edit-question',
-                    component: () => import('@/views/survey/administrator/pages/EditQuestion.vue'),
+                    path: '/depresiasi',
+                    name: 'depresiasi',
+                    component: () => import('@/views/asmen/jurnal/Depresiasi.vue'),
                     meta:{
                         requiresAuth: true,
                         admin:true,
                     }
                 },
                 {
-                    path: '/form-question/:cond',
-                    name: 'form-question',
-                    component: () => import('@/views/survey/administrator/pages/Question/Components/FormQuestions.vue'),
+                    path: '/koreksi',
+                    name: 'koreksi',
+                    component: () => import('@/views/asmen/jurnal/Koreksi.vue'),
                     meta:{
                         requiresAuth: true,
                         admin:true,
                     }
                 },
-                {
-                    path: '/form-survey/:cond',
-                    name: 'form-survey',
-                    component: () => import('@/views/survey/administrator/pages/Surveys/Components/FormSurvey.vue'),
-                    meta:{
-                        requiresAuth: true,
-                        admin:true,
-                    }
-                },
-                {
-                    path: '/response-survey/:id',
-                    name: 'response-survey',
-                    component: () => import('@/views/survey/administrator/pages/Surveys/Components/ResponseSurvey.vue'),
-                    meta:{
-                        requiresAuth: true,
-                        admin:true,
-                    }
-                },
+
             ]
         },
         {
             path: '/sign-out',
             name: 'signout',
-            component: () => import('@/views/survey/administrator/sign/SignOut.vue'),
+            component: () => import('@/views/asmen/signin/SignOut.vue'),
             meta:{
                 requiresAuth: true,
                 distributor:true,
@@ -134,8 +149,8 @@ const router = createRouter({
             }
         },
         {
-            path: '/auth/login',
-            name: 'login',
+            path: '/auth/out-session',
+            name: 'out-session',
             component: () => import('@/views/pages/auth/Login2.vue'),
             meta:{
                 guestOnly:true,
@@ -144,20 +159,15 @@ const router = createRouter({
         {
             path: '/verify/:id',
             name: 'verify',
-            component: () => import('@/views/survey/administrator/sign/Verify.vue'),
+            component: () => import('@/views/asmen/signin/Verify.vue'),
             meta:{
                 guestOnly:true,
             }
         },
         {
-            path: '/form/preview/:id',
-            name: 'preview',
-            component: () => import('@/views/survey/administrator/pages/FormPreview.vue'),
-        },
-        {
             path: '/:pathMatch(.*)*',
             name: 'notfound',
-            component: () => import('@/views/survey/administrator/sign/NotFound.vue')
+            component: () => import('@/views/asmen/notfound/NotFound.vue')
         },
     ]
 });
@@ -169,7 +179,7 @@ router.beforeEach((to, from, next) => {
 
     if (to.matched.some((route) => route.meta.requiresAuth)) {
         if (tokens) {
-            if (roles == 'admin') {
+            if (roles == 10) {
                 if (to.matched.some((route) => route.meta.admin)) {
                     next();
                 } else {
@@ -183,11 +193,11 @@ router.beforeEach((to, from, next) => {
                 }
             }
         } else {
-            next('/auth/login');
+            next('/auth/out-session');
         }
     } else if (to.matched.some((route) => route.meta.guestOnly)) {
         if (tokens) {
-            if (roles == 'admin') {
+            if (roles == 10) {
                 next('/home');
             } else {
                 next('/beranda');

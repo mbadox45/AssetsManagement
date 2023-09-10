@@ -93,7 +93,7 @@ const onSubmit = (e) => {
             <div class="w-full py-6 sm:py-2 px-5 sm:px-4" style="border-radius: 53px">
                 <div class="text-center">
                     <img src="/layout/inl.png" alt="PT.INL" class="w-10rem flex-shrink-0"/>
-                    <div class="text-900 text-3xl font-medium mt-3">Survey - INL</div>
+                    <div class="text-900 text-3xl font-medium mt-3">Asset Management</div>
                     <div>
                         <span class="text-600 font-medium">PT. Industri Nabati Lestari</span>
                     </div>
@@ -101,9 +101,9 @@ const onSubmit = (e) => {
 
             </div>
             <Divider layout="vertical" class="hidden md:block"/>
-            <div class="w-full shadow-5 py-6 px-5 md:px-6 sm:px-4 bg-white" style="border-radius: 40px">
-
-                <form @submit="onSubmit">
+            <div class="w-full shadow-5 py-6 px-5 md:px-6 sm:px-4 bg-white text-center" style="border-radius: 40px">
+                <span class="text-2xl font-semibold">Sesi anda telah berakhir</span>
+                <!-- <form @submit="onSubmit">
                     <label for="email1" class="block text-900 text-xl font-medium mb-2">Email</label>
                     <InputText id="email1" type="email" placeholder="Email address" class="w-full mb-5" style="padding: 1rem" v-model="email" autocomplete="off" />
 
@@ -114,7 +114,6 @@ const onSubmit = (e) => {
                         <div class="flex align-items-center">
                             <a class="font-medium no-underline cursor-pointer hover:text-primary-600" @click="link('password')" ><i class="pi pi-book mr-2"></i> Manual Book</a>
                         </div>
-                        <!-- <a class="font-medium no-underline ml-2 text-right cursor-pointer" @click="link('password')"></a> -->
                     </div>
                     <label v-if="isLoading == true" class="block text-900 text-xl font-medium mb-2">Loading ...</label>
                     <Button label="Sign In" class="w-full p-3 text-xl bg-blue-800 border-none" type="submit" rounded></Button>
@@ -125,7 +124,7 @@ const onSubmit = (e) => {
                     <div class="text-center block md:hidden">
                         <h5>Survey - INL</h5> <span class="mx-1">&copy;</span> 2023 - PT. Industri Nabati Lestari
                     </div>
-                </form>
+                </form> -->
             </div>
         </div>
     </div>
