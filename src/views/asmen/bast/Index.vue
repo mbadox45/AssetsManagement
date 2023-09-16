@@ -24,7 +24,7 @@ const menuModel = ref([
 ]);
 
 const breadcrumbHome = ref({ icon: 'pi pi-home', to: '/home' });
-const breadcrumbItems = ref([{ label: 'Home', to:'/home' }, { label: 'Master', to:'/adjustment' }, { label: 'Adjustment', class:'font-bold', disabled:true  }]);
+const breadcrumbItems = ref([{ label: 'Home', to:'/home' }, { label: 'BAST', to:'/serah-terima' }, { label: 'Submission', class:'font-bold', disabled:true  }]);
 
 const toast = useToast();
 
@@ -206,11 +206,8 @@ const postDialog = () => {
         <div class="col-12 md:col-12">
             <div class="card">
                 <div class="grid">
-                    <div class="col-6 md:col-6 sm:col-6">
-                        <h5>List Adjustment</h5>
-                    </div>
-                    <div class="col-6 md:col-6 sm:col-6 text-right">
-                        <Button severity="info" size="small" icon="pi pi-plus" outlined label="Add Adjustment" @click="showDialog('add','')" />
+                    <div class="col-12 md:col-6 sm:col-6">
+                        <h5>BA. Serah Terima</h5>
                     </div>
                 </div>
                 <!-- Datatable -->

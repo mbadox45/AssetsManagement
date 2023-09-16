@@ -10,6 +10,7 @@ import { formGroup } from '@/api/DataVariable';
 
 
 // Variable
+const roles = localStorage.getItem('roles');
 const dialogs = ref(false)
 const titledialogs = ref(null);
 const forms = ref(formGroup);
@@ -17,6 +18,13 @@ const form_subgroup = ref([{id:null, nama:'', kode_aktiva_tetap: '', kode_akm_pe
 const statusdialog = ref(null);
 const listGroup = ref([]);
 const filters = ref();
+const expandedRows = ref([]);
+const loadingTable = ref(null);
+const selectedGroup = ref();
+const cm = ref();
+const menuModel = ref([
+    {label: 'Edit', icon: 'pi pi-fw pi-pencil', command: () => showDialog('edit',selectedGroup.value)},
+]);
 
 const breadcrumbHome = ref({ icon: 'pi pi-home', to: '/home' });
 const breadcrumbItems = ref([{ label: 'Home', to:'/home' }, { label: 'Master', to:'/group' }, { label: 'Group', class:'font-bold', disabled:true  }]);
@@ -28,13 +36,22 @@ onMounted(() => {
     loadGroup();
 });
 
+const onRowContextMenu = (event) => {
+    cm.value.show(event.originalEvent);
+};
+
 // Load Data Area
 const loadGroup = async () => {
+    loadingTable.value = 'Loading ...';
     try {
         const response = await GroupService.getGroup();
         const load = response.data;
         const data = load.data;
-        console.log(load);
+        if (data.length > 0) {
+            loadingTable.value = null;
+        } else {
+            loadingTable.value = 'Data not found !';
+        }
         const list = [];
         for (let i = 0; i < data.length; i++) {
             list[i] = {
@@ -49,6 +66,7 @@ const loadGroup = async () => {
         }
         listGroup.value = list;
     } catch (error) {
+        loadingTable.value = 'Data not found !';
         listGroup.value = [];
     }
 }
@@ -298,24 +316,28 @@ const postDialog = () => {
                         <h5>List Group</h5>
                     </div>
                     <div class="col-6 md:col-6 sm:col-6 text-right">
-                        <Button severity="info" size="small" icon="pi pi-plus" outlined label="Add Group" @click="showDialog('add','')" />
+                        <Button severity="info" size="small" icon="pi pi-plus" outlined label="Add Group" @click="showDialog('add','')" v-show="roles > 8" />
                     </div>
                 </div>
                 <!-- Datatable -->
                 <div class="grid">
-                    <div class="col-12" v-if="listGroup.length > 0">
-                        <DataTable v-model:filters="filters" :value="listGroup" showGridlines paginator :rows="10" dataKey="id"
-                            filterDisplay="menu" :loading="loading" :globalFilterFields="['nama', 'format', 'kode_aktiva_tetap', 'kode_akm_penyusutan']">
+                    <div class="col-12">
+                        <h5 class="text-center font-normal" v-show="loadingTable !== null">{{ loadingTable }}</h5>
+                        <ContextMenu ref="cm" :model="menuModel" />
+                        <DataTable v-model:filters="filters" v-model:expandedRows="expandedRows" :value="listGroup" showGridlines paginator :rows="10" dataKey="id" contextMenu v-model:contextMenuSelection="selectedGroup" @rowContextmenu="onRowContextMenu"
+                            filterDisplay="menu" :loading="loading" :globalFilterFields="['nama', 'format', 'kode_aktiva_tetap', 'kode_akm_penyusutan']" v-show="loadingTable === null">
                             <template #header>
-                                <div class="flex justify-content-between">
+                                <div class="flex justify-content-between align-items-center">
                                     <span class="p-input-icon-left">
                                         <i class="pi pi-search" />
                                         <InputText v-model="filters['global'].value" placeholder="Keyword Search" />
                                     </span>
+                                    <span class="font-normal text-sm"><span class="text-red-500 font-semibold">*</span> Silahkan klik kanan untuk mendapatkan aksi disetiap row tabel.</span>
                                 </div>
                             </template>
                             <template #empty> No areas found. </template>
                             <template #loading> Loading areas data. Please wait. </template>
+                            <Column expander style="width: 5rem"></Column>
                             <Column field="no" header="No" style="min-width: 3rem">
                                 <template #body="{data}">
                                     {{ data.no }}
@@ -353,16 +375,38 @@ const postDialog = () => {
                                     <InputText v-model="filterModel.value" type="text" class="p-column-filter" placeholder="Search by kode penyusutan" />
                                 </template>
                             </Column>
-                            <Column style="text-align: center; width: 10rem;">
-                                <template #body="{data}">
-                                    <Button icon="pi pi-external-link" severity="success" class="mx-2" rounded outlined aria-label="Details" @click="showDialog('delete', data)"/>
-                                    <Button icon="pi pi-pencil" severity="warning" rounded outlined aria-label="Edit" @click="showDialog('edit', data)" />
-                                </template>
-                            </Column>
+                            <template #expansion="slotProps">
+                                <div class="p-3">
+                                    <h6 class="font-normal">Group <i class="pi pi-angle-double-right"></i> <span class="font-semibold">{{ slotProps.data.nama }}</span></h6>
+                                    <DataTable :value="slotProps.data.sub_groups" class="p-datatable-sm">
+                                        <Column field="nama" sortable>
+                                            <template #header>
+                                                <span class="text-xs">Sub Group</span>
+                                            </template>
+                                            <template #body="{data}">
+                                                <span class="text-sm">{{ data.nama }}</span>
+                                            </template>
+                                        </Column>
+                                        <Column field="kode_aktiva_tetap" sortable>
+                                            <template #header>
+                                                <span class="text-xs">Kode Aktiva Tetap</span>
+                                            </template>
+                                            <template #body="{data}">
+                                                <span class="text-sm">{{ data.kode_aktiva_tetap }}</span>
+                                            </template>
+                                        </Column>
+                                        <Column field="kode_akm_penyusutan" sortable>
+                                            <template #header>
+                                                <span class="text-xs">Kode Penyusutan</span>
+                                            </template>
+                                            <template #body="{data}">
+                                                <span class="text-sm">{{ data.kode_akm_penyusutan }}</span>
+                                            </template>
+                                        </Column>
+                                    </DataTable>
+                                </div>
+                            </template>
                         </DataTable>
-                    </div>
-                    <div class="col-12" v-else>
-                        <h5 class="text-center font-normal text-gray-500">- Data not found -</h5>
                     </div>
                 </div>
             </div>

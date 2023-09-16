@@ -22,14 +22,16 @@ const route = useRoute();
 
 const params = route.params.cond;
 const id_question = route.query.id;
+const tgl_question = route.query.tanggal;
 
 const judul = ref(null);
 const deskipsi = ref(null);
 const forms = ref(formAsset);
-const forms_spesifikasi = ref([{id:null, nama: "", value: ""}]);
+const forms_spesifikasi = ref([{nama: "", value: ""}]);
 const answers = ref(null);
 const changePertanyaan = ref(true);
 const disabled_depresiasi = ref(true);
+const loading = ref(null);
 
 // Dropdown
 const list_group = ref([])
@@ -76,50 +78,157 @@ const bcItems = () => {
 }
 
 // Function Private
+const loadAsset = async() => {
+    try {
+        const asset = await AssetsService.getAssetsByID(id_question,{tanggal:tgl_question});
+        const response = asset.data;
+        const data = response.data;
+        // console.log(data)
+        forms.value = {
+            id: data.id,
+            id_grup: data.sub_group.id_grup,
+            id_sub_grup: data.sub_group.id,
+            nama: data.nama,
+            brand: data.brand,
+            masa_manfaat: data.masa_manfaat,
+            tgl_perolehan: data.tgl_perolehan,
+            nilai_perolehan: Number(data.nilai_perolehan),
+            nilai_depresiasi_awal: Number(data.nilai_depresiasi_awal),
+            id_lokasi: data.id_lokasi,
+            id_departemen: data.id_departemen,
+            id_pic: Number(data.id_pic),
+            cost_centre: data.cost_centre,
+            kondisi: data.kondisi,
+            keterangan: data.keterangan,
+            id_supplier: data.id_supplier,
+            id_kode_adjustment: data.id_kode_adjustment,
+            fairValue: data.fair_values[0].nilai,
+            valueInUse: data.value_in_uses[0].nilai,
+        }
+        const spek = data.spesifikasi;
+        const list =[];
+        for (let i = 0; i < spek.length; i++) {
+            list[i] = {
+                value: spek[i].value, nama: spek[i].nama,
+            }
+        }
+        forms_spesifikasi.value = list;
+        cekDepresiasi();
+    } catch (error) {
+        console.error('Error fetching data:', error);
+        resetForm()
+    }
+}
+
 const loadDropdown = async () => {
+    let endTime = null;
+    loading.value = 'loading';
+
+    await loadAdjustment();
+    await loadGroup();
+    await loadLocation();
+    await loadSupplier();
+    await loadUser();
+
+    endTime = performance.now();
+    if (endTime != null) {
+        loading.value = null;
+    } else {
+        loading.value = 'failed';
+    }
+}
+
+const loadUser = async () => {
     try {
         // Load API
-        const group = await GroupService.getGroup();
-        const location = await AreaService.getLocation();
-        const supplier = await SupplierService.getSupplier();
-        const adjustment = await AdjustmentService.getAdjustment();
         const user = await UserService.getUsers();
-
-        // console.log(group);
-        // console.log(location);
         // Declare API
-        const group_data = group.data.data;
-        const location_data = location.data.data;
-        const supplier_data = supplier.data.data;
-        const adjustment_data = adjustment.data.data;
         const user_data = user.data.data;
         // Selection Data
-        const listGroup = [];
-        for (let i = 0; i < group_data.length; i++) {
-            listGroup[i] = {nama: group_data[i].nama, id_grup: group_data[i].id}
-        }
-        list_group.value = listGroup;
-        const listLocation = [];
-        for (let i = 0; i < location_data.length; i++) {
-            listLocation[i] = {nama: location_data[i].nama + ' (' + location_data[i].area.nama + ')', id_lokasi: location_data[i].id}
-        }
-        list_lokasi.value = listLocation;
-        const listSupplier = [];
-        for (let i = 0; i < supplier_data.length; i++) {
-            listSupplier[i] = {nama: supplier_data[i].nama, id_supplier: supplier_data[i].id}
-        }
-        list_supplier.value = listSupplier;
-        const listAdjustment = [];
-        for (let i = 0; i < adjustment_data.length; i++) {
-            listAdjustment[i] = {nama: `Loss (${adjustment_data[i].kode_loss} - ${adjustment_data[i].nama_loss}), Margin (${adjustment_data[i].kode_margin} - ${adjustment_data[i].nama_margin})`, id_kode_adjustment: adjustment_data[i].id}
-        }
-        list_adjustment.value = listAdjustment;
         const listUser = [];
         for (let i = 0; i < user_data.length; i++) {
             listUser[i] = {nama: user_data[i].name, id_pic: user_data[i].id}
         }
         list_pic.value = listUser;
     } catch (error) {
+        list_pic.value = [];
+        console.error('Error fetching data:', error);
+    }
+}
+
+const loadDept = async () => {
+    // try {
+    //     // Load API
+        const dept = await UserService.getDept();
+    //     // Declare API
+    //     const dept_data = dept.data.data;
+    //     // Selection Data
+    //     const listDept = [];
+    //     for (let i = 0; i < dept_data.length; i++) {
+    //         listDept[i] = {nama: dept_data[i].department, id_departemen: dept_data[i].id}
+    //     }
+    //     list_departemen.value = listDept;
+        console.log(dept)
+    // } catch (error) {
+    //     list_departemen.value = [];
+    //     console.error('Error fetching data:', error);
+    // }
+}
+
+const loadAdjustment = async () => {
+    try {
+        // Load API
+        const adjustment = await AdjustmentService.getAdjustment();
+        // Declare API
+        const adjustment_data = adjustment.data.data;
+
+        // Selection Data
+        const listAdjustment = [];
+        for (let i = 0; i < adjustment_data.length; i++) {
+            listAdjustment[i] = {nama: `Loss (${adjustment_data[i].kode_loss} - ${adjustment_data[i].nama_loss}), Margin (${adjustment_data[i].kode_margin} - ${adjustment_data[i].nama_margin})`, id_kode_adjustment: adjustment_data[i].id}
+        }
+        list_adjustment.value = listAdjustment;
+    } catch (error) {
+        list_adjustment.value = [];
+        console.error('Error fetching data:', error);
+    }
+}
+
+const loadSupplier = async () => {
+    try {
+        // Load API
+        const supplier = await SupplierService.getSupplier();
+        // Declare API
+        const supplier_data = supplier.data.data;
+        // Selection Data
+        const listSupplier = [];
+        for (let i = 0; i < supplier_data.length; i++) {
+            listSupplier[i] = {nama: supplier_data[i].nama, id_supplier: supplier_data[i].id}
+        }
+        list_supplier.value = listSupplier;
+    } catch (error) {
+        list_supplier.value = [];
+        console.error('Error fetching data:', error);
+    }
+}
+
+const loadGroup = async () => {
+    try {
+        // Load API
+        const group = await GroupService.getGroup();
+        // Declare API
+        const group_data = group.data.data;
+        // Selection Data
+        const listGroup = [];
+        for (let i = 0; i < group_data.length; i++) {
+            listGroup[i] = {nama: group_data[i].nama, id_grup: group_data[i].id}
+        }
+        list_group.value = listGroup;
+        if (forms.value.id_grup !== null) {
+            loadSubGroup();
+        }
+    } catch (error) {
+        list_group.value = [];
         console.error('Error fetching data:', error);
     }
 }
@@ -137,6 +246,26 @@ const loadSubGroup = async () => {
         }
         list_subgroup.value = listGroup;
     } catch (error) {
+        list_subgroup.value = [];
+        console.error('Error fetching data:', error);
+    }
+}
+
+const loadLocation = async () => {
+    try {
+        // Load API
+        const location = await AreaService.getLocation();
+        // Declare API
+        const location_data = location.data.data;
+        // Selection Data
+        const listLocation = [];
+        for (let i = 0; i < location_data.length; i++) {
+            listLocation[i] = {nama: location_data[i].nama + ' (' + location_data[i].area.nama + ')', id_lokasi: location_data[i].id}
+        }
+        list_lokasi.value = listLocation;
+    } catch (error) {
+        loading.value = 'error'
+        list_lokasi.value = [];
         console.error('Error fetching data:', error);
     }
 }
@@ -147,19 +276,23 @@ const cekDepresiasi = () => {
     const now_year = moment().format('YYYY');
     if (year >= now_year) {
         forms.value.nilai_depresiasi_awal = 0;
-        console.log(forms.value.nilai_depresiasi_awal);
+        // console.log(forms.value.nilai_depresiasi_awal);
         disabled_depresiasi.value = true;
     } else {
-        console.log('depresiasi is value');
+        // console.log('depresiasi is value');
         disabled_depresiasi.value = false;
-        forms.value.nilai_depresiasi_awal = null;
+        if (params === 'add') {
+            forms.value.nilai_depresiasi_awal = null;
+        }
     }
 }
 
 const addForms = (type) => {
     if (type == 'edit') {
         answers.value = type;
-        console.log(type)
+        loadAsset();
+        loadDropdown();
+        // console.log(type)
     } else {
         answers.value = type;
         resetForm()
@@ -170,7 +303,6 @@ const addForms = (type) => {
 const addsForm = () => {
     // tot_answare.value++;
     forms_spesifikasi.value.push({
-        id: null,
         value: '',
         nama: '',
     });
@@ -192,7 +324,7 @@ const resetForm = () => {
         nilai_perolehan: null,
         nilai_depresiasi_awal: null,
         id_lokasi: null,
-        id_departemen: 1,
+        id_departemen: null,
         id_pic: null,
         cost_centre: '',
         kondisi: '',
@@ -203,7 +335,7 @@ const resetForm = () => {
         valueInUse: null,
         spesifikasi: [],
     };
-    forms_spesifikasi.value = [{id:null, nama: "", value: ""}]
+    forms_spesifikasi.value = [{nama: "", value: ""}]
 }
 
 const backToQuestion = () => {
@@ -228,7 +360,11 @@ const postDialog = () => {
             toast.add({ severity: 'danger', summary: 'Attention', detail: 'Unable to post data', life: 3000 });
         })
     } else if (params == 'edit') {
-        console.log(params)
+        try {
+            console.log(params)
+        } catch (error) {
+            console.error('Error fetching data:', error);
+        }
     } else {
         console.log(forms.value);
         console.log(params);
@@ -251,7 +387,17 @@ const postDialog = () => {
                     <h5>{{judul}}</h5>
                     <span v-html="deskipsi"></span>
                 </div>
-                <Panel class="my-5">
+                <div v-show="loading === 'loading'" >
+                    <div class="flex align-items-center justify-content-center">
+                        <div>
+                            <ProgressSpinner aria-label="Loading"/>
+                        </div>
+                        <div>
+                            <div class="text-gray-500 font-semibold">Please wait ...</div>
+                        </div>
+                    </div>
+                </div>
+                <Panel class="my-5" v-show="loading === null">
                     <template #header>
                         <Button class="text-red-500 mr-2" outlined icon="pi pi-arrow-left" label="Kembali" size="small" @click="backToQuestion"></Button>
                     </template>
@@ -262,59 +408,59 @@ const postDialog = () => {
                     </template>
                     <div class="p-fluid formgrid grid">
                         <div class="field col-12 md:col-6">
-                            <label for="firstname2">Nama Asset</label>
+                            <label for="firstname2">Nama Asset <span class="text-red-500">*</span></label>
                             <InputText type="text" v-model="forms.nama" placeholder="Contoh: Laptop Asus Zenbook A15X"/>
                         </div>
                         <div class="field col-12 md:col-6">
-                            <label for="firstname2">Brand</label>
+                            <label for="firstname2">Brand <span class="text-red-500">*</span></label>
                             <InputText type="text" v-model="forms.brand" placeholder="Contoh: Asus"/>
                         </div>
                         <div class="field col-12 md:col-6">
-                            <label for="firstname2">Group</label>
+                            <label for="firstname2">Group <span class="text-red-500">*</span></label>
                             <Dropdown v-model="forms.id_grup" :options="list_group" filter optionLabel="nama" optionValue="id_grup" placeholder="Select a Group" @change="loadSubGroup"></Dropdown>
                         </div>
                         <div class="field col-12 md:col-6">
-                            <label for="firstname2">Sub Group</label>
+                            <label for="firstname2">Sub Group <span class="text-red-500">*</span></label>
                             <Dropdown v-model="forms.id_sub_grup" :options="list_subgroup" filter optionLabel="nama" optionValue="id_sub_grup" placeholder="Select a Sub Group"></Dropdown>
                         </div>
                         <div class="field col-12 md:col-3">
-                            <label for="firstname2">Masa Manfaat</label>
+                            <label for="firstname2">Masa Manfaat <span class="text-red-500">*</span></label>
                             <InputNumber v-model="forms.masa_manfaat" placeholder="0"/>
                         </div>
                         <div class="field col-12 md:col-3">
-                            <label for="firstname2">Tgl Perolehan</label>
+                            <label for="firstname2">Tgl Perolehan <span class="text-red-500">*</span></label>
                             <InputText type="date" v-model="forms.tgl_perolehan" @input="cekDepresiasi()"/>
                         </div>
                         <div class="field col-12 md:col-3">
-                            <label for="firstname2">Nilai Perolehan</label>
+                            <label for="firstname2">Nilai Perolehan <span class="text-red-500">*</span></label>
                             <InputNumber v-model="forms.nilai_perolehan" :minFractionDigits="2" :maxFractionDigits="3" placeholder="0.00" />
                         </div>
                         <div class="field col-12 md:col-3">
-                            <label for="firstname2">Nilai Depresiasi Awal</label>
+                            <label for="firstname2">Nilai Depresiasi Awal <span class="text-red-500">*</span></label>
                             <InputNumber v-model="forms.nilai_depresiasi_awal" :minFractionDigits="2" :maxFractionDigits="3" placeholder="0.00" :disabled="disabled_depresiasi"/>
                         </div>
                         <div class="field col-12 md:col-4">
-                            <label for="firstname2">Lokasi</label>
+                            <label for="firstname2">Lokasi <span class="text-red-500">*</span></label>
                             <Dropdown v-model="forms.id_lokasi" :options="list_lokasi" filter optionLabel="nama" optionValue="id_lokasi" placeholder="Select a Location"></Dropdown>
                         </div>
                         <div class="field col-12 md:col-4">
-                            <label for="firstname2">Departemen</label>
-                            <Dropdown v-model="forms.id_departemen" :options="list_departemen" filter optionLabel="nama" optionValue="id_departemen" placeholder="Select a Departemen"></Dropdown>
+                            <label for="firstname2">Departemen <span class="text-red-500">*</span></label>
+                            <Dropdown v-model="forms.id_departemen" :options="list_departemen" filter optionLabel="nama" optionValue="id_departemen" placeholder="Select a Departemen" disabled></Dropdown>
                         </div>
                         <div class="field col-12 md:col-4">
-                            <label for="firstname2">PIC Asset</label>
+                            <label for="firstname2">PIC Asset <span class="text-red-500">*</span></label>
                             <Dropdown v-model="forms.id_pic" :options="list_pic" filter optionLabel="nama" optionValue="id_pic" placeholder="Select a PIC"></Dropdown>
                         </div>
                         <div class="field col-12 md:col-6">
-                            <label for="firstname2">Cost Center</label>
+                            <label for="firstname2">Cost Center <span class="text-red-500">*</span></label>
                             <Dropdown v-model="forms.cost_centre" :options="list_cost_centre" optionLabel="name" optionValue="cost_centre" placeholder="Select a Cost Center"></Dropdown>
                         </div>
                         <div class="field col-12 md:col-6">
-                            <label for="firstname2">Kondisi</label>
+                            <label for="firstname2">Kondisi <span class="text-red-500">*</span></label>
                             <Dropdown v-model="forms.kondisi" :options="list_kondisi" optionLabel="name" optionValue="kondisi" placeholder="Select a Condition"></Dropdown>
                         </div>
                         <div class="field col-12 md:col-6">
-                            <label for="firstname2">Supplier</label>
+                            <label for="firstname2">Supplier <span class="text-red-500">*</span></label>
                             <Dropdown v-model="forms.id_supplier" :options="list_supplier" filter optionLabel="nama" optionValue="id_supplier" placeholder="Select a Supplier"></Dropdown>
                         </div>
                         <div class="field col-12 md:col-6">
@@ -330,14 +476,14 @@ const postDialog = () => {
                             <InputNumber v-model="forms.valueInUse" :minFractionDigits="2" :maxFractionDigits="2" placeholder="0.00"/>
                         </div>
                         <div class="field col-12 md:col-12">
-                            <label for="firstname2">Keterangan</label>
+                            <label for="firstname2">Keterangan <span class="text-red-500">*</span></label>
                             <Textarea v-model="forms.keterangan" autoResize rows="3"/>
                         </div>
                         <div class="field col-12 md:col-12">
                             <div class="p-fluid formgrid grid mt-4" v-for="(form, index) in forms_spesifikasi" :key="index">
                                 <div class="field col-12 md:col-12 grid">
                                     <div class="col-6">
-                                        <strong>Spesifikasi</strong>
+                                        <strong>Spesifikasi <span class="text-red-500">*</span></strong>
                                     </div>
                                     <div class="col-6 text-right">
                                         <Button icon="pi pi-plus" severity="primary" class="mx-2" @click="addsForm" outlined></Button>

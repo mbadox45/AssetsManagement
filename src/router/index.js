@@ -17,7 +17,8 @@ const router = createRouter({
                     component: () => import('@/views/survey/distributor/Home/Index.vue'),
                     meta:{
                         requiresAuth: true,
-                        distributor:true,
+                        dept:true,
+                        user:true,
                     }
                 },
                 {
@@ -26,7 +27,7 @@ const router = createRouter({
                     component: () => import('@/views/survey/distributor/Survey/Index.vue'),
                     meta:{
                         requiresAuth: true,
-                        distributor:true,
+                        dept:true,
                     }
                 },
                 {
@@ -35,7 +36,17 @@ const router = createRouter({
                     component: () => import('@/views/survey/distributor/Profile/Index.vue'),
                     meta:{
                         requiresAuth: true,
-                        distributor:true,
+                        dept:true,
+                    }
+                },
+
+                {
+                    path: '/serah-terima',
+                    name: 'serah-terima',
+                    component: () => import('@/views/asmen/bast/Index.vue'),
+                    meta:{
+                        requiresAuth: true,
+                        user:true,
                     }
                 },
 
@@ -68,6 +79,7 @@ const router = createRouter({
                     meta:{
                         requiresAuth: true,
                         admin:true,
+                        dept:true,
                     }
                 },
                 {
@@ -86,9 +98,19 @@ const router = createRouter({
                     meta:{
                         requiresAuth: true,
                         admin:true,
+                        dept:true,
                     }
                 },
                 // Assets
+                {
+                    path: '/fixed-asset',
+                    name: 'fixed-asset',
+                    component: () => import('@/views/asmen/aset/fixedassets/AssetDept.vue'),
+                    meta:{
+                        requiresAuth: true,
+                        dept:true,
+                    }
+                },
                 {
                     path: '/fix-asset',
                     name: 'fix-asset',
@@ -96,6 +118,7 @@ const router = createRouter({
                     meta:{
                         requiresAuth: true,
                         admin:true,
+                        dept:true,
                     }
                 },
                 {
@@ -144,8 +167,7 @@ const router = createRouter({
             component: () => import('@/views/asmen/signin/SignOut.vue'),
             meta:{
                 requiresAuth: true,
-                distributor:true,
-                // admin:true,
+                dept:true,
             }
         },
         {
@@ -185,8 +207,14 @@ router.beforeEach((to, from, next) => {
                 } else {
                     next('/home');
                 }
+            } else if (roles == 8) {
+                if (to.matched.some((route) => route.meta.dept)) {
+                    next();
+                } else {
+                    next('/beranda');
+                }
             } else {
-                if (to.matched.some((route) => route.meta.distributor)) {
+                if (to.matched.some((route) => route.meta.user)) {
                     next();
                 } else {
                     next('/beranda');
@@ -199,6 +227,8 @@ router.beforeEach((to, from, next) => {
         if (tokens) {
             if (roles == 10) {
                 next('/home');
+            } else if (roles == 8) {
+                next('/beranda');
             } else {
                 next('/beranda');
             }

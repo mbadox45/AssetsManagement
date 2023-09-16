@@ -79,6 +79,7 @@ const tokenChecker = () => {
             } else {
                 console.log('Token activated');
                 console.log(token);
+                console.log(roles);
                 // config.headers['Authorization'] = `Bearer ${token}`;
             }
         }

@@ -62,7 +62,7 @@ export const listKondisi = [
     { name: 'Lelang', kondisi: 'lelang' },
 ];
 export const listCostCentre = [
-    { name: 'Auxilary', cost_centre: 'Auxilary' },
+    { name: 'Auxilary', cost_centre: 'Auxiliary' },
     { name: 'Refinery', cost_centre: 'Refinery' },
     { name: 'Fractination', cost_centre: 'Fractination' },
     { name: 'Packaging', cost_centre: 'Packaging' },
@@ -144,6 +144,17 @@ export const formGroup = {
     kode_akm_penyusutan: '',
     format: '',
     subGroups: [],
+}
+export const formAssetDept = {
+    id: null,
+    tgl_serah: '',
+    nama: '',
+    brand: '',
+    id_lokasi: null,
+    id_pic: null,
+    kondisi: '',
+    keterangan: '',
+    spesifikasi: [],
 }
 export const formAsset = {
     id: 0,

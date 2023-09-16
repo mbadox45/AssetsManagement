@@ -64,10 +64,14 @@ const loadParams = async () => {
                             localStorage.setItem('roles', filteredData[0].level_akses);
                             localStorage.setItem('usertoken', token);
                             localStorage.setItem('payload', JSON.stringify(pushdata));
+                            // console.log(filteredData[0].level_akses)
                             setTimeout(function() {
                                 loadings.value = false;
-                                window.location.replace(`${URL_WEB}home`);
-                                // router.push('/home')
+                                if (filteredData[0].level_akses === 10) {
+                                    window.location.replace(`${URL_WEB}home`);
+                                } else {
+                                    window.location.replace(`${URL_WEB}beranda`);
+                                }
                             }, time.value);
                         } else {
                             window.close();
@@ -79,32 +83,15 @@ const loadParams = async () => {
                     console.log(error);
                     window.close();
                 }
-                // VerifyService.getUser(idUser.value,header).then(res => {
-                //     const load = res.data;
-                //     const data = load.data;
-                //     const roles = "admin";
-                //     const pushdata = {
-                //         id :  idUser.value,
-                //         email : data.email,
-                //         name : data.name,
-                //         type: "admin",
-                //     }
-                //     localStorage.setItem('roles', roles);
-                //     localStorage.setItem('usertoken', token);
-                //     localStorage.setItem('payload', JSON.stringify(pushdata));
-                //     console.log(data);
-                // })
-                // setTimeout(function() {
-                //     loadings.value = false;
-                //     window.location.replace(`${URL_WEB}home`);
-                //     // router.push('/home')
-                // }, time.value);
             } else {
                 setTimeout(function() {
                     loadings.value = false;
-                    // window.location.replace("http://localhost:8086/home");
-                    // window.location.replace("http://192.168.1.223:8086/home");
-                    // router.push('/home')
+                    const roles = localStorage.getItem('roles');
+                    if (roles === 10) {
+                        window.location.replace(`${URL_WEB}home`);
+                    } else {
+                        window.location.replace(`${URL_WEB}beranda`);
+                    }
                 }, time.value);
             }
         }

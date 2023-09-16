@@ -5,14 +5,15 @@ import { useToast } from 'primevue/usetoast';
 
 
 // API
+import AssetsService from '@/api/AssetsService';
 import AdjustmentService from '@/api/AdjustmentService';
-import { formAdjustment} from '@/api/DataVariable';
+import { formAssetDept} from '@/api/DataVariable';
 
 
 // Variable
 const dialogs = ref(false)
 const titledialogs = ref(null);
-const forms = ref(formAdjustment);
+const forms = ref(formAssetDept);
 const statusdialog = ref(null);
 const listAdjustment = ref([]);
 const filters = ref();
@@ -24,7 +25,7 @@ const menuModel = ref([
 ]);
 
 const breadcrumbHome = ref({ icon: 'pi pi-home', to: '/home' });
-const breadcrumbItems = ref([{ label: 'Home', to:'/home' }, { label: 'Master', to:'/adjustment' }, { label: 'Adjustment', class:'font-bold', disabled:true  }]);
+const breadcrumbItems = ref([{ label: 'Home', to:'/home' }, { label: 'Master', to:'/fixed-asset' }, { label: 'Fixed Assets', class:'font-bold', disabled:true  }]);
 
 const toast = useToast();
 
@@ -41,9 +42,10 @@ const onRowContextMenu = (event) => {
 const loadAdjustment = async () => {
     loadingTable.value = 'Loading ...';
     try {
-        const response = await AdjustmentService.getAdjustment();
+        const response = await AssetsService.getDeptFixedAsset();
         const load = response.data;
         const data = load.data;
+        console.log(data)
         if (data.length > 0) {
             loadingTable.value = null;
         } else {
@@ -54,15 +56,26 @@ const loadAdjustment = async () => {
             list[i] = {
                 no : i+1,
                 id : data[i].id,
-                kode_loss : data[i].kode_loss,
-                nama_loss : data[i].nama_loss,
-                kode_margin : data[i].kode_margin,
-                nama_margin : data[i].nama_margin,
+                nama : data[i].nama,
+                brand : data[i].brand,
+                nomor : data[i].nomor,
+                id_pic : data[i].id_pic,
+                id_lokasi : data[i].id_lokasi,
+                assetDepartment : data[i].assetDepartment,
+                assetUserName : data[i].assetUserName,
+                assetAge : data[i].assetAge,
+                tgl_perolehan : data[i].tgl_perolehan,
+                assetUserPosition : data[i].assetUserPosition,
+                lokasi : data[i].location.nama,
+                area : data[i].location.area.nama,
+                kondisi : data[i].kondisi,
+                id_departemen : data[i].id_departemen,
+                spesifikasi : data[i].spesifikasi,
             }
         }
         listAdjustment.value = list;
     } catch (error) {
-        loadingTable.value = 'Data not found !';
+        loadingTable.value = 'Unauthorized access';
         listAdjustment.value = [];
     }
 }
@@ -71,10 +84,10 @@ const loadAdjustment = async () => {
 const initFilters = () => {
     filters.value = {
         global: { value: null, matchMode: FilterMatchMode.CONTAINS },
-        kode_loss: { operator: FilterOperator.AND, constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }] },
-        kode_margin: { operator: FilterOperator.AND, constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }] },
-        nama_loss: { operator: FilterOperator.AND, constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }] },
-        nama_margin: { operator: FilterOperator.AND, constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }] },
+        nomor: { operator: FilterOperator.AND, constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }] },
+        nama: { operator: FilterOperator.AND, constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }] },
+        brand: { operator: FilterOperator.AND, constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }] },
+        assetUserName: { operator: FilterOperator.AND, constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }] },
     };
 };
 
@@ -88,11 +101,15 @@ const clearFilter = () => {
 // Reset Variable Form
 const resetForm = () => {
     forms.value = {
-        id: 0,
-        nama_margin: '',
-        kode_margin: '',
-        nama_loss: '',
-        kode_loss: '',
+        id: null,
+        tgl_serah: '',
+        nama: '',
+        brand: '',
+        id_lokasi: null,
+        id_pic: null,
+        kondisi: '',
+        keterangan: '',
+        spesifikasi: [],
     }
 }
 
@@ -105,14 +122,7 @@ const showDialog = (status, item) => {
         resetForm()
     } else if (status == 'delete') {
         titledialogs.value = 'Delete User';
-        statusdialog.value = status
-        forms.value = {
-            id: item.id,
-            nama_margin: item.nama_margin,
-            kode_margin: item.kode_margin,
-            nama_loss: item.nama_loss,
-            kode_loss: item.kode_loss,
-        };
+        statusdialog.value = status;
     } else {
         titledialogs.value = 'Edit User';
         statusdialog.value = status
@@ -174,8 +184,8 @@ const postDialog = () => {
             </template>
             <div class="p-fluid formgrid grid" v-if="statusdialog != 'delete'">
                 <div class="field col-12 md:col-12">
-                    <label for="firstname2">Kode Margin</label>
-                    <InputText type="text" placeholder="Kode Margin" v-model="forms.kode_margin"/>
+                    <label for="firstname2">Tanggal Penyerahan</label>
+                    <InputText type="date" placeholder="Kode Margin" v-model="forms.kode_margin"/>
                 </div>
                 <div class="field col-12 md:col-12">
                     <label for="firstname2">Nama Margin</label>
@@ -207,10 +217,10 @@ const postDialog = () => {
             <div class="card">
                 <div class="grid">
                     <div class="col-6 md:col-6 sm:col-6">
-                        <h5>List Adjustment</h5>
+                        <h5>Fixed Assets</h5>
                     </div>
                     <div class="col-6 md:col-6 sm:col-6 text-right">
-                        <Button severity="info" size="small" icon="pi pi-plus" outlined label="Add Adjustment" @click="showDialog('add','')" />
+                        <Button severity="info" size="small" icon="pi pi-plus" outlined label="Add Asset" @click="showDialog('add','')" />
                     </div>
                 </div>
                 <!-- Datatable -->
@@ -232,38 +242,38 @@ const postDialog = () => {
                             </template>
                             <template #empty> No customers found. </template>
                             <template #loading> Loading customers data. Please wait. </template>
-                            <Column field="no" header="No" style="min-width: 12rem">
+                            <Column field="no" header="No" style="min-width: 8rem">
                                 <template #body="{ data }">
                                     {{ data.no }}
                                 </template>
                             </Column>
-                            <Column field="kode_margin" header="Kode Margin" style="min-width: 12rem">
+                            <Column field="nomor" header="No Asset" style="min-width: 12rem">
                                 <template #body="{ data }">
-                                    {{ data.kode_margin }}
+                                    <strong>{{ data.nomor }}</strong>
                                 </template>
                                 <template #filter="{ filterModel }">
                                     <InputText v-model="filterModel.value" type="text" class="p-column-filter" placeholder="Search by name" />
                                 </template>
                             </Column>
-                            <Column field="nama_margin" header="Nama Margin" style="min-width: 12rem">
+                            <Column field="nama" header="Nama Asset" style="min-width: 12rem">
                                 <template #body="{ data }">
-                                    {{ data.nama_margin }}
+                                    {{ data.nama }}
                                 </template>
                                 <template #filter="{ filterModel }">
                                     <InputText v-model="filterModel.value" type="text" class="p-column-filter" placeholder="Search by name" />
                                 </template>
                             </Column>
-                            <Column field="kode_loss" header="Kode Loss" style="min-width: 12rem">
+                            <Column field="brand" header="Brand" style="min-width: 12rem">
                                 <template #body="{ data }">
-                                    {{ data.kode_loss }}
+                                    {{ data.brand }}
                                 </template>
                                 <template #filter="{ filterModel }">
                                     <InputText v-model="filterModel.value" type="text" class="p-column-filter" placeholder="Search by name" />
                                 </template>
                             </Column>
-                            <Column field="nama_loss" header="Nama Loss" style="min-width: 12rem">
+                            <Column field="assetUserName" header="PIC" style="min-width: 12rem">
                                 <template #body="{ data }">
-                                    {{ data.nama_loss }}
+                                    {{ data.assetUserName }}
                                 </template>
                                 <template #filter="{ filterModel }">
                                     <InputText v-model="filterModel.value" type="text" class="p-column-filter" placeholder="Search by name" />

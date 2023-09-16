@@ -18,6 +18,13 @@ const statusdialog = ref(null);
 const listArea = ref([]);
 const filters = ref();
 const expandedRows = ref([]);
+const loadingTable = ref(null);
+const selectedArea = ref();
+const cm = ref();
+const menuModel = ref([
+    {label: 'Logs', icon: 'pi pi-fw pi-hashtag', command: () => viewArea('view',selectedArea)},
+    {label: 'Edit', icon: 'pi pi-fw pi-pencil', command: () => showDialog('edit',selectedArea.value)},
+]);
 
 const breadcrumbHome = ref({ icon: 'pi pi-home', to: '/home' });
 const breadcrumbItems = ref([{ label: 'Home', to:'/home' }, { label: 'Master', to:'/area' }, { label: 'Area', class:'font-bold', disabled:true  }]);
@@ -29,13 +36,25 @@ onMounted(() => {
     loadArea();
 });
 
+const viewArea = (status,data) => {
+    console.log(status,data.value);
+};
+const onRowContextMenu = (event) => {
+    cm.value.show(event.originalEvent);
+};
+
 // Load Data Area
 const loadArea = async () => {
+    loadingTable.value = 'Loading ...';
     try {
         const response = await AreaService.getArea();
         const load = response.data;
         const data = load.data;
-        console.log(load);
+        if (data.length > 0) {
+            loadingTable.value = null;
+        } else {
+            loadingTable.value = 'Data not found !';
+        }
         const list = [];
         for (let i = 0; i < data.length; i++) {
             list[i] = {
@@ -43,10 +62,12 @@ const loadArea = async () => {
                 id : data[i].id,
                 nama : data[i].nama,
                 locations : data[i].locations,
+                logs : data[i].logs,
             }
         }
         listArea.value = list;
     } catch (error) {
+        loadingTable.value = 'Data not found !';
         listArea.value = [];
     }
 }
@@ -235,19 +256,23 @@ const postDialog = () => {
                 </div>
                 <!-- Datatable -->
                 <div class="grid">
-                    <div class="col-12" v-if="listArea.length > 0">
-                        <DataTable v-model:filters="filters" :value="listArea" showGridlines paginator :rows="10" dataKey="id"
-                            filterDisplay="menu" :loading="loading" :globalFilterFields="['nama', 'locations.nama']">
+                    <div class="col-12">
+                        <h5 class="text-center font-normal" v-show="loadingTable !== null">{{ loadingTable }}</h5>
+                        <ContextMenu ref="cm" :model="menuModel" />
+                        <DataTable v-model:filters="filters" v-model:expandedRows="expandedRows" contextMenu v-model:contextMenuSelection="selectedArea" @rowContextmenu="onRowContextMenu" :value="listArea" showGridlines paginator :rows="10" dataKey="id"
+                            filterDisplay="menu" :loading="loading" :globalFilterFields="['nama', 'locations.nama']" v-show="loadingTable === null">
                             <template #header>
-                                <div class="flex justify-content-between">
+                                <div class="flex justify-content-between align-items-center">
                                     <span class="p-input-icon-left">
                                         <i class="pi pi-search" />
                                         <InputText v-model="filters['global'].value" placeholder="Keyword Search" />
                                     </span>
+                                    <span class="font-normal text-sm"><span class="text-red-500 font-semibold">*</span> Silahkan klik kanan untuk mendapatkan aksi disetiap row tabel.</span>
                                 </div>
                             </template>
                             <template #empty> No areas found. </template>
                             <template #loading> Loading areas data. Please wait. </template>
+                            <Column expander style="width: 5rem"></Column>
                             <Column field="no" header="No" style="min-width: 3rem">
                                 <template #body="{data}">
                                     {{ data.no }}
@@ -258,16 +283,30 @@ const postDialog = () => {
                                     {{ data.nama }}
                                 </template>
                             </Column>
-                            <Column style="text-align: center; width: 10rem;">
-                                <template #body="{data}">
-                                    <Button icon="pi pi-external-link" severity="success" class="mx-2" rounded outlined aria-label="Details" @click="showDialog('delete', data)"/>
-                                    <Button icon="pi pi-pencil" severity="warning" rounded outlined aria-label="Edit" @click="showDialog('edit', data)" />
-                                </template>
-                            </Column>
+                            <template #expansion="slotProps">
+                                <div class="p-3">
+                                    <h6 class="font-normal">Lokasi untuk area <span class="font-semibold">{{ slotProps.data.nama }}</span></h6>
+                                    <DataTable :value="slotProps.data.locations" class="p-datatable-sm" style="width: 30%;">
+                                        <Column field="nama" sortable>
+                                            <template #header>
+                                                <span class="text-xs">Lokasi</span>
+                                            </template>
+                                            <template #body="{data}">
+                                                <span class="text-sm">{{ data.nama }}</span>
+                                            </template>
+                                        </Column>
+                                        <Column field="keterangan" sortable>
+                                            <template #header>
+                                                <span class="text-xs">Keterangan</span>
+                                            </template>
+                                            <template #body="{data}">
+                                                <span class="text-sm">{{ data.keterangan }}</span>
+                                            </template>
+                                        </Column>
+                                    </DataTable>
+                                </div>
+                            </template>
                         </DataTable>
-                    </div>
-                    <div class="col-12" v-else>
-                        <h5 class="text-center font-normal text-gray-500">- Data not found -</h5>
                     </div>
                 </div>
             </div>

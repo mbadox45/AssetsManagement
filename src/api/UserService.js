@@ -13,4 +13,9 @@ export default new class UserService{
     resetPasswordUser(id){
         return http.get(`reset-password/${id}`);
     }
+
+    // Departement
+    getDept(){
+        return http.get(`department`);
+    }
 }

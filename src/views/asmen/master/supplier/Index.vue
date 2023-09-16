@@ -16,6 +16,12 @@ const forms = ref(formSupplier);
 const statusdialog = ref(null);
 const listSupplier = ref([]);
 const filters = ref();
+const loadingTable = ref(null);
+const selectedArea = ref();
+const cm = ref();
+const menuModel = ref([
+    {label: 'Edit', icon: 'pi pi-fw pi-pencil', command: () => showDialog('edit',selectedArea.value)},
+]);
 
 const breadcrumbHome = ref({ icon: 'pi pi-home', to: '/home' });
 const breadcrumbItems = ref([{ label: 'Home', to:'/home' }, { label: 'Master', to:'/supplier' }, { label: 'Supplier', class:'font-bold', disabled:true  }]);
@@ -27,13 +33,22 @@ onMounted(() => {
     loadSupplier();
 });
 
+const onRowContextMenu = (event) => {
+    cm.value.show(event.originalEvent);
+};
+
 // Load Data Supplier
 const loadSupplier = async () => {
+    loadingTable.value = 'Loading ...';
     try {
         const response = await SupplierService.getSupplier();
         const load = response.data;
         const data = load.data;
-        console.log(load);
+        if (data.length > 0) {
+            loadingTable.value = null;
+        } else {
+            loadingTable.value = 'Data not found !';
+        }
         const list = [];
         for (let i = 0; i < data.length; i++) {
             list[i] = {
@@ -46,6 +61,7 @@ const loadSupplier = async () => {
         }
         listSupplier.value = list;
     } catch (error) {
+        loadingTable.value = 'Data not found !';
         listSupplier.value = [];
     }
 }
@@ -190,16 +206,19 @@ const postDialog = () => {
                 </div>
                 <!-- Datatable -->
                 <div class="grid">
-                    <div class="col-12" v-if="listSupplier.length > 0">
-                        <DataTable v-model:filters="filters" :value="listSupplier" paginator showGridlines :rows="10" dataKey="id"
-                            filterDisplay="menu" :loading="loading" :globalFilterFields="['nama', 'kode', 'keterangan']">
+                    <div class="col-12">
+                        <h5 class="text-center font-normal" v-show="loadingTable !== null">{{ loadingTable }}</h5>
+                        <ContextMenu ref="cm" :model="menuModel"/>
+                        <DataTable v-model:filters="filters" :value="listSupplier" paginator showGridlines :rows="10" dataKey="id" contextMenu v-model:contextMenuSelection="selectedArea" @rowContextmenu="onRowContextMenu"
+                            filterDisplay="menu" :loading="loading" :globalFilterFields="['nama', 'kode', 'keterangan']" v-show="loadingTable === null">
                             <template #header>
-                                <div class="flex justify-content-between">
-                                    <Button type="button" icon="pi pi-filter-slash" label="Clear" outlined @click="clearFilter()" />
+                                <div class="flex justify-content-between align-items-center">
+                                    <!-- <Button type="button" icon="pi pi-filter-slash" label="Clear" outlined @click="clearFilter()" /> -->
                                     <span class="p-input-icon-left">
                                         <i class="pi pi-search" />
                                         <InputText v-model="filters['global'].value" placeholder="Keyword Search" />
                                     </span>
+                                    <span class="font-normal text-sm"><span class="text-red-500 font-semibold">*</span> Silahkan klik kanan untuk mendapatkan aksi disetiap row tabel.</span>
                                 </div>
                             </template>
                             <template #empty> No customers found. </template>
@@ -233,15 +252,7 @@ const postDialog = () => {
                                     <InputText v-model="filterModel.value" type="text" class="p-column-filter" placeholder="Search by keterangan" />
                                 </template>
                             </Column>
-                            <Column style="">
-                                <template #body="{ data }">
-                                    <Button icon="pi pi-pencil" severity="warning" rounded outlined aria-label="Notification" @click="showDialog('edit', data)" />
-                                </template>
-                            </Column>
                         </DataTable>
-                    </div>
-                    <div class="col-12" v-else>
-                        <h5 class="text-center font-normal text-gray-500">- Data not found -</h5>
                     </div>
                 </div>
             </div>

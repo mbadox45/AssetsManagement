@@ -8,6 +8,9 @@ export default new class AssetsService{
     getAssets(data){
         return http.post(`fixed-asset`, data);
     }
+    getAssetsByID(id_asset, data){
+        return http.post(`fixed-asset/get/${id_asset}`, data);
+    }
 
     // Fair Value Asset
     getFairValue(id_asset){
@@ -29,5 +32,17 @@ export default new class AssetsService{
     }
     updateValueInUse(id_asset, id, data){
         return http.post(`value-in-use/update/${id_asset}/${id}`, data);
+    }
+
+    // Asset by Dept
+    getDeptFixedAsset(){
+        return http.get(`dept-fixed-asset`);
+    }
+    getDeptFixedAssetByID(id_asset){
+        return http.get(`dept-fixed-asset/get/${id_asset}`);
+    }
+    // Update + Create BAST
+    updateDeptFixedAsset(id_asset,data){
+        return http.post(`dept-fixed-asset/update/${id_asset}`, data);
     }
 }
