@@ -92,6 +92,15 @@ const router = createRouter({
                     }
                 },
                 {
+                    path: '/mis',
+                    name: 'mis',
+                    component: () => import('@/views/asmen/master/mis/Index.vue'),
+                    meta:{
+                        requiresAuth: true,
+                        admin:true,
+                    }
+                },
+                {
                     path: '/group',
                     name: 'group',
                     component: () => import('@/views/asmen/master/group/Index.vue'),

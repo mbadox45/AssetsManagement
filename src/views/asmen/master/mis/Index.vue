@@ -5,7 +5,7 @@ import { useToast } from 'primevue/usetoast';
 
 
 // API
-import SupplierService from '@/api/SupplierService';
+import StockPickingService from '@/api/StockPickingService';
 import { formSupplier } from '@/api/DataVariable';
 
 
@@ -41,7 +41,7 @@ const onRowContextMenu = (event) => {
 const loadSupplier = async () => {
     loadingTable.value = 'Loading ...';
     try {
-        const response = await SupplierService.getSupplier();
+        const response = await StockPickingService.getMis();
         const load = response.data;
         const data = load.data;
         if (data.length > 0) {
@@ -54,9 +54,9 @@ const loadSupplier = async () => {
             list[i] = {
                 no : i+1,
                 id : data[i].id,
-                nama : data[i].name,
-                kode : data[i].commercial_partner_id,
-                keterangan : data[i].email,
+                name : data[i].name,
+                section : data[i].section,
+                etc : data[i].required_for,
             }
         }
         listSupplier.value = list;
@@ -70,9 +70,9 @@ const loadSupplier = async () => {
 const initFilters = () => {
     filters.value = {
         global: { value: null, matchMode: FilterMatchMode.CONTAINS },
-        nama: { operator: FilterOperator.AND, constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }] },
-        kode: { operator: FilterOperator.AND, constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }] },
-        keterangan: { operator: FilterOperator.AND, constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }] },
+        name: { operator: FilterOperator.AND, constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }] },
+        section: { operator: FilterOperator.AND, constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }] },
+        etc: { operator: FilterOperator.AND, constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }] },
     };
 };
 
@@ -121,43 +121,6 @@ const showDialog = (status, item) => {
     }
 }
 
-// Aksi Add & Update dari form Dialog
-const postDialog = () => {
-    // console.log(forms.value)
-    dialogs.value = false;
-    if (statusdialog.value == 'add') {
-        // console.log(statusdialog.value)
-        SupplierService.addSupplier(forms.value).then(res => {
-            const load = res.data;
-            if (load.code == 200) {
-                toast.add({ severity: 'success', summary: 'Successfully', detail: `Data saved successfully`, life: 3000 });
-            } else {
-                toast.add({ severity: 'warn', summary: 'Caution', detail: `Process failed`, life: 3000 });
-            }
-        }).catch(error => {
-            console.error(error.response.status);
-            toast.add({ severity: 'danger', summary: 'Attention', detail: 'Unable to post data', life: 3000 });
-        })
-        setTimeout(() => {loadSupplier();}, 3000);
-    } else if (statusdialog.value == 'delete') {
-        console.log(statusdialog.value)
-    } else {
-        SupplierService.updateSupplier(forms.value.id,forms.value).then(res => {
-            const load = res.data;
-            if (load.code == 200) {
-                toast.add({ severity: 'success', summary: 'Successfully', detail: `Data saved successfully`, life: 3000 });
-                // setTimeout(loadUser(), 3000);
-            } else {
-                toast.add({ severity: 'warn', summary: 'Caution', detail: `Process failed`, life: 3000 });
-            }
-        }).catch(error => {
-            console.error(error.response.status);
-            toast.add({ severity: 'danger', summary: 'Attention', detail: 'Unable to post data', life: 3000 });
-        })
-        setTimeout(() => {loadSupplier();}, 3000);
-    }
-}
-
 </script>
 
 <template>
@@ -188,7 +151,7 @@ const postDialog = () => {
             </div>
             <template #footer>
                 <Button v-show="statusdialog != 'delete'" label="No" icon="pi pi-times" @click="dialogs = false" class="p-button-outlined p-button-danger" />
-                <Button label="Save" icon="pi pi-save" @click="postDialog" class="p-button-outlined p-button-success" autofocus :disabled="disablebtnchangepass" />
+                <Button label="Save" icon="pi pi-save" class="p-button-outlined p-button-success" autofocus/>
             </template>
         </Dialog>
         <div class="col-12 md:col-12">
@@ -198,7 +161,7 @@ const postDialog = () => {
             <div class="card">
                 <div class="grid">
                     <div class="col-6 md:col-6 sm:col-6">
-                        <h5>List Supplier</h5>
+                        <h5>List MIS</h5>
                     </div>
                     <div class="col-6 md:col-6 sm:col-6 text-right">
                         <!-- <Button severity="info" size="small" icon="pi pi-plus" outlined label="Add Supplier" @click="showDialog('add','')" /> -->
@@ -210,7 +173,7 @@ const postDialog = () => {
                         <h5 class="text-center font-normal" v-show="loadingTable !== null">{{ loadingTable }}</h5>
                         <ContextMenu ref="cm" :model="menuModel"/>
                         <DataTable v-model:filters="filters" :value="listSupplier" paginator showGridlines :rows="10" dataKey="id" contextMenu v-model:contextMenuSelection="selectedArea" @rowContextmenu="onRowContextMenu"
-                            filterDisplay="menu" :loading="loading" :globalFilterFields="['nama', 'kode', 'keterangan']" v-show="loadingTable === null">
+                            filterDisplay="menu" :loading="loading" :globalFilterFields="['name', 'section', 'etc']" v-show="loadingTable === null">
                             <template #header>
                                 <div class="flex justify-content-between align-items-center">
                                     <!-- <Button type="button" icon="pi pi-filter-slash" label="Clear" outlined @click="clearFilter()" /> -->
@@ -223,33 +186,24 @@ const postDialog = () => {
                             </template>
                             <template #empty> No customers found. </template>
                             <template #loading> Loading customers data. Please wait. </template>
-                            <Column field="no" header="No" style="min-width: 12rem">
+                            <Column field="no" header="No" style="min-width: 2rem">
                                 <template #body="{ data }">
                                     {{ data.no }}
                                 </template>
                             </Column>
-                            <Column field="nama" header="Nama Supplier" style="min-width: 12rem">
+                            <Column field="name" header="MIS" style="min-width: 12rem">
                                 <template #body="{ data }">
-                                    {{ data.nama }}
-                                </template>
-                                <template #filter="{ filterModel }">
-                                    <InputText v-model="filterModel.value" type="text" class="p-column-filter" placeholder="Search by nama" />
+                                    {{ data.name }}
                                 </template>
                             </Column>
-                            <Column field="kode" header="Kode" style="min-width: 12rem">
+                            <Column field="section" header="Section" style="min-width: 12rem">
                                 <template #body="{ data }">
-                                    {{ data.kode }}
-                                </template>
-                                <template #filter="{ filterModel }">
-                                    <InputText v-model="filterModel.value" type="text" class="p-column-filter" placeholder="Search by kode" />
+                                    {{ data.section }}
                                 </template>
                             </Column>
-                            <Column field="keterangan" header="Keterangan" style="min-width: 12rem">
+                            <Column field="etc" header="Etc" style="min-width: 12rem">
                                 <template #body="{ data }">
-                                    {{ data.keterangan }}
-                                </template>
-                                <template #filter="{ filterModel }">
-                                    <InputText v-model="filterModel.value" type="text" class="p-column-filter" placeholder="Search by keterangan" />
+                                    {{ data.etc }}
                                 </template>
                             </Column>
                         </DataTable>

@@ -105,6 +105,7 @@ import BlockViewer from '@/components/BlockViewer.vue';
 
 // JSON to Excel for VUE 3
 import JsonExcel from "vue-json-excel3";
+// import ExportExcelSheetVueJs from "export-excel-sheet-vue-js";
 
 import '@/assets/styles.scss';
 
@@ -115,6 +116,7 @@ app.use(PrimeVue, { ripple: true });
 app.use(ToastService);
 app.use(DialogService);
 app.use(ConfirmationService);
+// app.use(ExportExcelSheetVueJs);
 
 app.directive('tooltip', Tooltip);
 app.directive('badge', BadgeDirective);

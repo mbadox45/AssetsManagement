@@ -79,6 +79,7 @@ const Menu = () => {
                     { label: 'Adjustment', icon: 'pi pi-fw pi-cog', to: '/adjustment', },
                     { label: 'Area', icon: 'pi pi-fw pi-map-marker', to: '/area', },
                     { label: 'Supplier', icon: 'pi pi-fw pi-box', to: '/supplier',},
+                    { label: 'MIS', icon: 'pi pi-fw pi-shield', to: '/mis',},
                     { label: 'Group', icon: 'pi pi-fw pi-sitemap', to: '/group',},
                 ]
             },

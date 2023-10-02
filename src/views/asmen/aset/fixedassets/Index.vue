@@ -30,6 +30,7 @@ const tanggal = ref(moment(new Date()).format('YYYY-MM-DD'));
 const expandedRows = ref([]);
 const expandedRows2 = ref([]);
 const listGroup = ref([]);
+const total_nilai_perolehan = ref(null);
 const loadingTable = ref(null);
 const selectedAsset = ref();
 const cm = ref();
@@ -71,7 +72,27 @@ const onRowContextMenu = (event) => {
 };
 
 const viewAssets = (status,data) => {
-    console.log(status,data.value);
+    if (status === 'hide') {
+        try {
+            AssetsService.toggleActive(data.id).then(res => {
+                const load = res.data;
+                if (load.code == 200) {
+                    toast.add({ severity: 'success', summary: 'Successfully', detail: `Data updated successfully`, life: 3000 });
+                    resetForm();
+                } else {
+                    toast.add({ severity: 'warn', summary: 'Caution', detail: `Process failed`, life: 3000 });
+                }
+            }).catch(error => {
+                console.error(error.response.status);
+                toast.add({ severity: 'danger', summary: 'Attention', detail: 'Unable to post data', life: 3000 });
+            })
+        } catch (error) {
+            console.log(error);
+            toast.add({ severity: 'danger', summary: 'Attention', detail: 'Unable to post data', life: 3000 });
+        }
+    } else {
+        console.log(status,data.value);
+    }
 };
 
 const loadMenuAction = () => {
@@ -79,18 +100,18 @@ const loadMenuAction = () => {
         menuModel.value = [
             {label: 'View Details', icon: 'pi pi-fw pi-search', command: () => showDialog('detail',selectedAsset.value)},
             {label: 'Edit', icon: 'pi pi-fw pi-pencil', command: () => editAssets('edit',selectedAsset.value.id)},
-            {label: 'Hide', icon: 'pi pi-fw pi-times', command: () => viewAssets('hide',selectedAsset)},
+            {label: 'Hide', icon: 'pi pi-fw pi-times', command: () => viewAssets('hide',selectedAsset.value)},
             { separator: true },
             {label: 'Calculate Initial Balance', icon: 'pi pi-fw pi-calculator', command: () => showDialog('calculate',selectedAsset.value)},
             {label: 'Asset Value', icon: 'pi pi-fw pi-money-bill', command: () => showDialog('value',selectedAsset.value)},
-            {label: 'BAST', icon: 'pi pi-fw pi-file', command: () => viewAssets('hide',selectedAsset)},
+            {label: 'BAST', icon: 'pi pi-fw pi-file', command: () => viewAssets('bast',selectedAsset)},
         ]
     } else {
         menuModel.value = [
             {label: 'View Details', icon: 'pi pi-fw pi-search', command: () => showDialog('detail',selectedAsset.value)},
             {label: 'Edit', icon: 'pi pi-fw pi-pencil', command: () => showDialog('edit',selectedAsset.value)},
             { separator: true },
-            {label: 'BAST', icon: 'pi pi-fw pi-file', command: () => viewAssets('hide',selectedAsset)},
+            {label: 'BAST', icon: 'pi pi-fw pi-file', command: () => viewAssets('bast',selectedAsset)},
         ]
     }
 }
@@ -116,8 +137,8 @@ const loadAsset = async () => {
         }
 
         const list = [];
+        let total = 0;
         for (let i = 0; i < data.length; i++) {
-
             if (roles.value > 8) {
                 // Convert Data Array calculateInitialBalance
                 const convertedData = [];
@@ -165,7 +186,7 @@ const loadAsset = async () => {
                     bookValue: data[i].bookValue,
                     formated_kode_penyusutan: data[i].formated_kode_penyusutan,
                     formated_kode_aktiva: data[i].formated_kode_aktiva,
-                    supplier: data[i].supplier.nama,
+                    supplier: data[i].assetSupplier.commercial_company_name,
                     cost_centre: data[i].cost_centre,
                     fair_values: data[i].fair_values,
                     value_in_uses: data[i].value_in_uses,
@@ -173,10 +194,17 @@ const loadAsset = async () => {
                     nilai_depresiasi_awal: data[i].nilai_depresiasi_awal,
                     monthlyDepreciation: data[i].monthlyDepreciation,
                     annualDepreciation: data[i].annualDepreciation,
-                    accumulatedDepreciation: data[i].accumulatedDepreciation,
                     location: data[i].location.nama,
                     calculateInitialBalance: convertedData,
+                    adjustment_kode_loss: data[i].adjustment.kode_loss,
+                    adjustment_nama_loss: data[i].adjustment.nama_loss,
+                    adjustment_kode_margin: data[i].adjustment.kode_margin,
+                    adjustment_nama_margin: data[i].adjustment.nama_margin,
+                    assetMIS_name: data[i].assetMIS.name,
                 };
+                if (data[i].status === 1) {
+                    total += data[i].nilai_perolehan;
+                }
             } else {
                 list[i] = {
                     id:data[i].id,
@@ -200,7 +228,11 @@ const loadAsset = async () => {
                 };
             }
         }
-        // console.log(list)
+        
+        if (roles.value > 8) {
+            total_nilai_perolehan.value = formatCurrency(total);
+        }
+        
         listGroup.value = list;
     } catch (error) {
         loadingTable.value = 'Unauthorized access';
@@ -265,7 +297,7 @@ const showDialog = async (status, item) => {
     } else if (status === 'value') {
         // Title Dialog
         titledialogs.value = `ASSET VALUE <i class="pi pi-angle-double-right mx-2"></i> ${item.nomor}`;
-        datadialog.value = {id: item.id};
+        datadialog.value = {fair_value: item.fair_values, value_in_uses: item.value_in_uses, id_asset:item.id};
     } else {
         titledialogs.value = `EDIT ASSET <i class="pi pi-angle-double-right mx-2"></i> ${item.nomor}`;
         datadialog.value = item;
@@ -307,10 +339,6 @@ const hideDialog = (status) => {
             <div v-else>
                 <dialog-asset :status_dialog="statusdialog" :data_dialog="datadialog" ></dialog-asset>
             </div>
-            <!-- <template #footer>
-                <Button :label="statusdialog == 'edit' ? 'No':'Cancel'" icon="pi pi-times" @click="dialogs = false" class="p-button-outlined p-button-danger" />
-                <Button v-show="statusdialog == 'edit'" label="Save" icon="pi pi-save" class="p-button-outlined p-button-success" autofocus @click="hideDialog" />
-            </template> -->
         </Dialog>
         <div class="col-12 md:col-12">
             <Breadcrumb :home="breadcrumbHome" :model="breadcrumbItems" class="bg-gray-300" />
@@ -357,7 +385,7 @@ const hideDialog = (status) => {
                                         <i class="pi pi-search" />
                                         <InputText v-model="filters['global'].value" placeholder="Keyword Search" />
                                     </span>
-                                    <download-excel :data="listGroup" class="py-3 px-2 cursor-pointer font-semibold text-sm text-green-700 hover:text-green-500 " worksheet = "Depresiasi Asset" :name="`Depresiasi Asset ${moment().format('YYYY-MM-DD')}.xls`"><i class="pi pi-download mr-2"></i> Export to Excel</download-excel>
+                                    <download-excel :data="listGroup" class="py-3 px-2 cursor-pointer font-semibold text-sm text-green-700 hover:text-green-500 " worksheet = "Fixed Asset" :name="`Fixed Assets ${moment().format('YYYY-MM-DD hh:mm:ss')}.xls`"><i class="pi pi-download mr-2"></i> Export to Excel</download-excel>
                                     <span class="font-normal text-sm py-3"><span class="text-red-500 font-semibold">*</span> Silahkan klik kanan untuk mendapatkan aksi disetiap row tabel.</span>
                                 </div>
                             </template>
@@ -546,6 +574,12 @@ const hideDialog = (status) => {
                                     <span class="text-sm">{{ formatCurrency(data.accumulatedDepreciation) }}</span>
                                 </template>
                             </Column>
+                            <ColumnGroup type="footer">
+                                <Row>
+                                    <Column footer="Total Nilai Perolehan:" :colspan="10" footerStyle="text-align:right"/>
+                                    <Column :footer="total_nilai_perolehan" :colspan="6" />
+                                </Row>
+                            </ColumnGroup>
                         </DataTable>
                     </div>
                     <div class="col-12" v-else>

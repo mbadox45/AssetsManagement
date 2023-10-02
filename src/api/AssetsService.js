@@ -5,11 +5,17 @@ export default new class AssetsService{
     addAssets(data){
         return http.post(`fixed-asset/add`, data);
     }
+    updateAssets(id_asset,data){
+        return http.post(`fixed-asset/update/${id_asset}`, data);
+    }
     getAssets(data){
         return http.post(`fixed-asset`, data);
     }
     getAssetsByID(id_asset, data){
         return http.post(`fixed-asset/get/${id_asset}`, data);
+    }
+    toggleActive(id_asset){
+        return http.get(`fixed-asset/active/${id_asset}`);
     }
 
     // Fair Value Asset
@@ -22,6 +28,9 @@ export default new class AssetsService{
     updateFairValue(id_asset, id, data){
         return http.post(`fair-value/update/${id_asset}/${id}`, data);
     }
+    deleteFairValue(id_asset, id){
+        return http.delete(`fair-value/delete/${id_asset}/${id}`);
+    }
 
     // Value In Use Asset
     getValueInUse(id_asset){
@@ -32,6 +41,9 @@ export default new class AssetsService{
     }
     updateValueInUse(id_asset, id, data){
         return http.post(`value-in-use/update/${id_asset}/${id}`, data);
+    }
+    deleteValueInUse(id_asset, id){
+        return http.delete(`value-in-use/delete/${id_asset}/${id}`);
     }
 
     // Asset by Dept

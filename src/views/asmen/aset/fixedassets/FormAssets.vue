@@ -9,10 +9,14 @@ import moment from 'moment';
 import GroupService from '@/api/GroupService';
 import AreaService from '@/api/AreaService';
 import SupplierService from '@/api/SupplierService';
+import StockPickingService from '@/api/StockPickingService';
 import AdjustmentService from '@/api/AdjustmentService';
 import UserService from '@/api/UserService';
 import AssetsService from '@/api/AssetsService';
 import { formAsset, settingPertanyaan, BreadcrumbHome, listKondisi, listCostCentre } from '@/api/DataVariable';
+
+// Component
+import InputDepartmen from './components/form_Input/InputDepartmen.vue';
 
 
 // Variable
@@ -31,7 +35,9 @@ const forms_spesifikasi = ref([{nama: "", value: ""}]);
 const answers = ref(null);
 const changePertanyaan = ref(true);
 const disabled_depresiasi = ref(true);
+const disabled_asset_value = ref(true);
 const loading = ref(null);
+const checked = ref(false);
 
 // Dropdown
 const list_group = ref([])
@@ -43,6 +49,7 @@ const list_kondisi = ref(listKondisi)
 const list_cost_centre = ref(listCostCentre);
 const list_supplier = ref([])
 const list_adjustment = ref([])
+const list_mis = ref([])
 
 const breadcrumbHome = ref(BreadcrumbHome);
 const breadcrumbItems = ref([]);
@@ -94,13 +101,14 @@ const loadAsset = async() => {
             tgl_perolehan: data.tgl_perolehan,
             nilai_perolehan: Number(data.nilai_perolehan),
             nilai_depresiasi_awal: Number(data.nilai_depresiasi_awal),
+            id_mis: Number(data.id_mis),
             id_lokasi: data.id_lokasi,
-            id_departemen: data.id_departemen,
+            id_departemen: Number(data.id_departemen),
             id_pic: Number(data.id_pic),
             cost_centre: data.cost_centre,
             kondisi: data.kondisi,
             keterangan: data.keterangan,
-            id_supplier: data.id_supplier,
+            id_supplier: Number(data.id_supplier),
             id_kode_adjustment: data.id_kode_adjustment,
             fairValue: data.fair_values[0].nilai,
             valueInUse: data.value_in_uses[0].nilai,
@@ -113,7 +121,8 @@ const loadAsset = async() => {
             }
         }
         forms_spesifikasi.value = list;
-        cekDepresiasi();
+        cekKondisiAsset();
+        cekDepresiasi(data.fair_values[0].nilai, data.value_in_uses[0].nilai);
     } catch (error) {
         console.error('Error fetching data:', error);
         resetForm()
@@ -124,11 +133,13 @@ const loadDropdown = async () => {
     let endTime = null;
     loading.value = 'loading';
 
+    await loadMIS();
+    await loadSupplier();
     await loadAdjustment();
     await loadGroup();
     await loadLocation();
-    await loadSupplier();
     await loadUser();
+    await loadDept();
 
     endTime = performance.now();
     if (endTime != null) {
@@ -157,22 +168,22 @@ const loadUser = async () => {
 }
 
 const loadDept = async () => {
-    // try {
-    //     // Load API
+    try {
+        // Load API
         const dept = await UserService.getDept();
-    //     // Declare API
-    //     const dept_data = dept.data.data;
-    //     // Selection Data
-    //     const listDept = [];
-    //     for (let i = 0; i < dept_data.length; i++) {
-    //         listDept[i] = {nama: dept_data[i].department, id_departemen: dept_data[i].id}
-    //     }
-    //     list_departemen.value = listDept;
+        // Declare API
+        const dept_data = dept.data.data;
+        // Selection Data
+        const listDept = [];
+        for (let i = 0; i < dept_data.length; i++) {
+            listDept[i] = {nama: dept_data[i].department, id_departemen: dept_data[i].id}
+        }
+        list_departemen.value = listDept;
         console.log(dept)
-    // } catch (error) {
-    //     list_departemen.value = [];
-    //     console.error('Error fetching data:', error);
-    // }
+    } catch (error) {
+        list_departemen.value = [];
+        console.error('Error fetching data:', error);
+    }
 }
 
 const loadAdjustment = async () => {
@@ -194,6 +205,24 @@ const loadAdjustment = async () => {
     }
 }
 
+const loadMIS = async () => {
+    try {
+        // Load API
+        const mis = await StockPickingService.getMis();
+        // Declare API
+        const mis_data = mis.data.data;
+        // Selection Data
+        const listSupplier = [];
+        for (let i = 0; i < mis_data.length; i++) {
+            listSupplier[i] = {nama: `${mis_data[i].name}`, id_mis: mis_data[i].id}
+        }
+        list_mis.value = listSupplier;
+    } catch (error) {
+        list_mis.value = [];
+        console.error('Error fetching data:', error);
+    }
+}
+
 const loadSupplier = async () => {
     try {
         // Load API
@@ -203,7 +232,7 @@ const loadSupplier = async () => {
         // Selection Data
         const listSupplier = [];
         for (let i = 0; i < supplier_data.length; i++) {
-            listSupplier[i] = {nama: supplier_data[i].nama, id_supplier: supplier_data[i].id}
+            listSupplier[i] = {nama: `${supplier_data[i].commercial_partner_id} - ${supplier_data[i].name}`, id_supplier: supplier_data[i].id}
         }
         list_supplier.value = listSupplier;
     } catch (error) {
@@ -287,6 +316,35 @@ const cekDepresiasi = () => {
     }
 }
 
+// Pengecekan Depresiasi
+const cekKondisiAsset = (fair, use) => {
+    if (fair === 0 || use === 0) {
+        if (checked.value == false) {
+            disabled_asset_value.value = true;
+        } else {
+            disabled_asset_value.value = false;
+        }
+    } else if (fair > 0 || use === 0) {
+        if (checked.value == false) {
+            disabled_asset_value.value = true;
+        } else {
+            disabled_asset_value.value = false;
+        }
+    } else if (fair === 0 || use > 0) {
+        if (checked.value == false) {
+            disabled_asset_value.value = true;
+        } else {
+            disabled_asset_value.value = false;
+        }
+    } else{
+        if (checked.value == false) {
+            disabled_asset_value.value = true;
+        } else {
+            disabled_asset_value.value = false;
+        }
+    }
+}
+
 const addForms = (type) => {
     if (type == 'edit') {
         answers.value = type;
@@ -324,6 +382,7 @@ const resetForm = () => {
         nilai_perolehan: null,
         nilai_depresiasi_awal: null,
         id_lokasi: null,
+        id_mis: null,
         id_departemen: null,
         id_pic: null,
         cost_centre: '',
@@ -331,8 +390,8 @@ const resetForm = () => {
         keterangan: '',
         id_supplier: null,
         id_kode_adjustment: null,
-        fairValue: null,
-        valueInUse: null,
+        fairValue: 0,
+        valueInUse: 0,
         spesifikasi: [],
     };
     forms_spesifikasi.value = [{nama: "", value: ""}]
@@ -351,7 +410,8 @@ const postDialog = () => {
             const load = res.data;
             if (load.code == 200) {
                 toast.add({ severity: 'success', summary: 'Successfully', detail: `Data saved successfully`, life: 3000 });
-                resetForm();
+                loading.value = 'loading';
+                setTimeout(backToQuestion, 3000);
             } else {
                 toast.add({ severity: 'warn', summary: 'Caution', detail: `Process failed`, life: 3000 });
             }
@@ -360,11 +420,19 @@ const postDialog = () => {
             toast.add({ severity: 'danger', summary: 'Attention', detail: 'Unable to post data', life: 3000 });
         })
     } else if (params == 'edit') {
-        try {
-            console.log(params)
-        } catch (error) {
-            console.error('Error fetching data:', error);
-        }
+        AssetsService.updateAssets(forms.value.id, forms.value).then(res => {
+            const load = res.data;
+            if (load.code == 200) {
+                toast.add({ severity: 'success', summary: 'Successfully', detail: `Data saved successfully`, life: 3000 });
+                loading.value = 'loading';
+                setTimeout(backToQuestion, 3000);
+            } else {
+                toast.add({ severity: 'warn', summary: 'Caution', detail: `Process failed`, life: 3000 });
+            }
+        }).catch(error => {
+            console.error(error.response.status);
+            toast.add({ severity: 'danger', summary: 'Attention', detail: 'Unable to post data', life: 3000 });
+        })
     } else {
         console.log(forms.value);
         console.log(params);
@@ -440,22 +508,27 @@ const postDialog = () => {
                             <InputNumber v-model="forms.nilai_depresiasi_awal" :minFractionDigits="2" :maxFractionDigits="3" placeholder="0.00" :disabled="disabled_depresiasi"/>
                         </div>
                         <div class="field col-12 md:col-4">
+                            <label for="firstname2">MIS <span class="text-red-500">*</span></label>
+                            <Dropdown v-model="forms.id_mis" :options="list_mis" filter optionLabel="nama" optionValue="id_mis" placeholder="Select a MIS"></Dropdown>
+                        </div>
+                        <div class="field col-12 md:col-4">
                             <label for="firstname2">Lokasi <span class="text-red-500">*</span></label>
                             <Dropdown v-model="forms.id_lokasi" :options="list_lokasi" filter optionLabel="nama" optionValue="id_lokasi" placeholder="Select a Location"></Dropdown>
                         </div>
                         <div class="field col-12 md:col-4">
                             <label for="firstname2">Departemen <span class="text-red-500">*</span></label>
-                            <Dropdown v-model="forms.id_departemen" :options="list_departemen" filter optionLabel="nama" optionValue="id_departemen" placeholder="Select a Departemen" disabled></Dropdown>
+                            <!-- <input-departmen :id_departemen="forms.id_departemen" ></input-departmen> -->
+                            <Dropdown v-model="forms.id_departemen" :options="list_departemen" filter optionLabel="nama" optionValue="id_departemen" placeholder="Select a Departemen"></Dropdown>
                         </div>
                         <div class="field col-12 md:col-4">
                             <label for="firstname2">PIC Asset <span class="text-red-500">*</span></label>
                             <Dropdown v-model="forms.id_pic" :options="list_pic" filter optionLabel="nama" optionValue="id_pic" placeholder="Select a PIC"></Dropdown>
                         </div>
-                        <div class="field col-12 md:col-6">
+                        <div class="field col-12 md:col-4">
                             <label for="firstname2">Cost Center <span class="text-red-500">*</span></label>
                             <Dropdown v-model="forms.cost_centre" :options="list_cost_centre" optionLabel="name" optionValue="cost_centre" placeholder="Select a Cost Center"></Dropdown>
                         </div>
-                        <div class="field col-12 md:col-6">
+                        <div class="field col-12 md:col-4">
                             <label for="firstname2">Kondisi <span class="text-red-500">*</span></label>
                             <Dropdown v-model="forms.kondisi" :options="list_kondisi" optionLabel="name" optionValue="kondisi" placeholder="Select a Condition"></Dropdown>
                         </div>
@@ -467,13 +540,17 @@ const postDialog = () => {
                             <label for="firstname2">Adjustment</label>
                             <Dropdown v-model="forms.id_kode_adjustment" :options="list_adjustment" filter optionLabel="nama" optionValue="id_kode_adjustment" placeholder="Select a Adjustment"></Dropdown>
                         </div>
-                        <div class="field col-12 md:col-6">
-                            <label for="firstname2">Fair Value</label>
-                            <InputNumber v-model="forms.fairValue" :minFractionDigits="2" :maxFractionDigits="2" placeholder="0.00"/>
+                        <div class="field col-12 md:col-2">
+                            <label for="firstname2">Kategori Asset</label>
+                            <ToggleButton v-model="checked" onLabel="Asset Besar" offLabel="Asset Kecil" :class="checked === false ? `w-9rem bg-teal-400 text-white border-white` : `w-9rem bg-blue-400 border-white`" @click="cekKondisiAsset(forms.fairValue, forms.valueInUse)" />
                         </div>
-                        <div class="field col-12 md:col-6">
+                        <div class="field col-12 md:col-5">
+                            <label for="firstname2">Fair Value</label>
+                            <InputNumber v-model="forms.fairValue" :minFractionDigits="2" :maxFractionDigits="2" placeholder="0.00" :disabled="disabled_asset_value"/>
+                        </div>
+                        <div class="field col-12 md:col-5">
                             <label for="firstname2">Value In Use</label>
-                            <InputNumber v-model="forms.valueInUse" :minFractionDigits="2" :maxFractionDigits="2" placeholder="0.00"/>
+                            <InputNumber v-model="forms.valueInUse" :minFractionDigits="2" :maxFractionDigits="2" placeholder="0.00" :disabled="disabled_asset_value"/>
                         </div>
                         <div class="field col-12 md:col-12">
                             <label for="firstname2">Keterangan <span class="text-red-500">*</span></label>
