@@ -1,5 +1,5 @@
 import axios from "axios";
-import { URL_API_Portal } from "./DataVariable";
+import { URL_API_Portal } from "./env";
 
 const http = axios.create({
     baseURL: URL_API_Portal,

@@ -10,7 +10,7 @@ import AppConfig from '@/layout/AppConfig.vue';
 
 // API
 import AuthService from '@/api/AuthService';
-import { URL_WEB, URL_WEB_Portal } from '@/api/DataVariable';
+import { URL_WEB, URL_WEB_Portal } from '@/api/env';
 
 const toast = useToast();
 const router = useRouter();

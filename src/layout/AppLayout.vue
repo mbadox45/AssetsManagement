@@ -6,6 +6,8 @@ import AppSidebar from './AppSidebar.vue';
 import AppConfig from './AppConfig.vue';
 import { useLayout } from '@/layout/composables/layout';
 
+import { URL_WEB, URL_WEB_Portal} from '@/api/env';
+
 const { layoutConfig, layoutState, isSidebarActive } = useLayout();
 
 const outsideClickListener = ref(null);
@@ -73,7 +75,7 @@ const tokenChecker = () => {
                 localStorage.removeItem('usertoken');
                 localStorage.removeItem('payload');
                 localStorage.removeItem('roles');
-                window.location.replace("http://192.168.1.223:8085/auth/login");
+                window.location.replace(URL_WEB_Portal);
                 // router.push('/auth/login');
                 console.log('expired');
             } else {

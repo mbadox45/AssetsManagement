@@ -2,7 +2,7 @@
 import { ref, onMounted } from 'vue';
 import { useRouter, useRoute  } from 'vue-router';
 import VerifyService from '@/api/VerifyService';
-import { URL_WEB, URL_WEB_Portal} from '@/api/DataVariable';
+import { URL_WEB, URL_WEB_Portal} from '@/api/env';
 
 const router = useRouter();
 const route = useRoute();

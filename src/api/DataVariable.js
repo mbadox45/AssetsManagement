@@ -5,27 +5,6 @@ const date_ago =  moment().subtract(10, 'days').format('DD-MM-YYYY');
 // API
 // import GroupService from "./GroupService";
 
-// // Public Access
-// export const URL_WEB = 'http://36.92.181.10:3777/';
-// export const URL_API = 'http://36.92.181.10:3888/api/';
-// export const URL_WEB_Portal = 'http://192.168.1.223:8085/';
-// export const URL_API_Portal = 'http://36.92.181.10:4763/api/';
-// export const URL_API_Odoo = '-';
-
-// // Server Access
-// export const URL_WEB = 'http://192.168.1.223:8086/';
-// export const URL_API = 'http://192.168.1.223:3002/api/';
-export const URL_WEB_Portal = 'http://192.168.1.223:8085/';
-export const URL_API_Portal = 'http://36.92.181.10:4763/api/';
-// export const URL_API_Odoo = 'http://192.168.1.223:3003/api/';
-
-// Local Access
-export const URL_WEB = 'http://localhost:8087/';
-export const URL_API = 'http://localhost:3002/api/';
-// export const URL_WEB_Portal = 'http://localhost:8085/';
-// export const URL_API_Portal = 'http://36.92.181.10:4763/api/';
-export const URL_API_Odoo = 'http://localhost:3003/api/';
-
 // List for dropdown
 export const listAkses = [
     { name: 1, level_akses: 1 },
