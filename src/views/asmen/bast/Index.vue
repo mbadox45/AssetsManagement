@@ -2,31 +2,35 @@
 import { onMounted, ref } from 'vue';
 import { FilterMatchMode, FilterOperator } from 'primevue/api';
 import { useToast } from 'primevue/usetoast';
+import { useRouter } from 'vue-router';
 
+// Components
+import ApproveBast from './components/ApproveBast.vue';
 
 // API
-import AdjustmentService from '@/api/AdjustmentService';
-import { formAdjustment} from '@/api/DataVariable';
+import BastService from '@/api/BastService';
+import BastLayout from '@/api/BastLayout';
+import {formAdjustment} from '@/api/DataVariable';
 
 
 // Variable
 const dialogs = ref(false)
 const titledialogs = ref(null);
+const datadialog = ref(null);
 const forms = ref(formAdjustment);
 const statusdialog = ref(null);
-const listAdjustment = ref([]);
+const listBast = ref([]);
 const filters = ref();
 const loadingTable = ref(null);
 const selectedArea = ref();
 const cm = ref();
-const menuModel = ref([
-    {label: 'Edit', icon: 'pi pi-fw pi-pencil', command: () => showDialog('edit',selectedArea.value)},
-]);
+const menuModel = ref(null);
 
 const breadcrumbHome = ref({ icon: 'pi pi-home', to: '/home' });
 const breadcrumbItems = ref([{ label: 'Home', to:'/home' }, { label: 'BAST', to:'/serah-terima' }, { label: 'Submission', class:'font-bold', disabled:true  }]);
 
 const toast = useToast();
+const router = useRouter();
 
 // Given accsess public funtion
 onMounted(() => {
@@ -35,13 +39,26 @@ onMounted(() => {
 
 const onRowContextMenu = (event) => {
     cm.value.show(event.originalEvent);
+    menuFunc();
 };
+
+const menuFunc = () => {
+    if (selectedArea.value.status1 != 'Approved') {
+        menuModel.value = [
+            {label: 'BAST', icon: 'pi pi-fw pi-file', command: () => showDialog('approve_pic',selectedArea.value)},
+        ];
+    } else {
+        menuModel.value = [
+            {label: 'Download BAST', icon: 'pi pi-fw pi-download', command: () => showDialog('print',selectedArea.value)},
+        ];
+    }
+}
 
 // Load Data Adjustment
 const loadAdjustment = async () => {
     loadingTable.value = 'Loading ...';
     try {
-        const response = await AdjustmentService.getAdjustment();
+        const response = await BastService.getBastByPIC();
         const load = response.data;
         const data = load.data;
         if (data.length > 0) {
@@ -51,19 +68,38 @@ const loadAdjustment = async () => {
         }
         const list = [];
         for (let i = 0; i < data.length; i++) {
+            let status1 = 'Not Found';
+            let status2 = 'Not Found';
+            if (data[i].bast_fixed_assets != null) {
+                const approve1 = data[i].bast_fixed_assets[(data[i].bast_fixed_assets.length) - 1].ttd_terima;
+                if (approve1 == null) {
+                    status1 = 'Not yet approved';
+                } else {
+                    status1 = 'Approved';
+                }
+                const approve2 = data[i].bast_fixed_assets[(data[i].bast_fixed_assets.length) - 1].ttd_checker;
+                if (approve2 == null) {
+                    status2 = 'Not yet approved';
+                } else {
+                    status2 = 'Approved';
+                }
+            }
             list[i] = {
                 no : i+1,
                 id : data[i].id,
-                kode_loss : data[i].kode_loss,
-                nama_loss : data[i].nama_loss,
-                kode_margin : data[i].kode_margin,
-                nama_margin : data[i].nama_margin,
+                nomor : data[i].nomor,
+                brand : data[i].brand,
+                nama : data[i].nama,
+                status1 : status1,
+                status2 : status2,
+                location : data[i].location.nama,
+                bast_fixed_assets : data[i].bast_fixed_assets != null ? data[i].bast_fixed_assets[(data[i].bast_fixed_assets.length) - 1] : data[i].bast_fixed_assets,
             }
         }
-        listAdjustment.value = list;
+        listBast.value = list;
     } catch (error) {
         loadingTable.value = 'Data not found !';
-        listAdjustment.value = [];
+        listBast.value = [];
     }
 }
 
@@ -71,10 +107,6 @@ const loadAdjustment = async () => {
 const initFilters = () => {
     filters.value = {
         global: { value: null, matchMode: FilterMatchMode.CONTAINS },
-        kode_loss: { operator: FilterOperator.AND, constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }] },
-        kode_margin: { operator: FilterOperator.AND, constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }] },
-        nama_loss: { operator: FilterOperator.AND, constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }] },
-        nama_margin: { operator: FilterOperator.AND, constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }] },
     };
 };
 
@@ -84,83 +116,35 @@ const clearFilter = () => {
     initFilters();
 };
 
-
-// Reset Variable Form
-const resetForm = () => {
-    forms.value = {
-        id: 0,
-        nama_margin: '',
-        kode_margin: '',
-        nama_loss: '',
-        kode_loss: '',
-    }
-}
-
 // Menampilkan Dialog Form
-const showDialog = (status, item) => {
-    dialogs.value = true;
-    if (status == 'add') {
-        titledialogs.value = 'Create User';
-        statusdialog.value = status
-        resetForm()
-    } else if (status == 'delete') {
-        titledialogs.value = 'Delete User';
-        statusdialog.value = status
-        forms.value = {
-            id: item.id,
-            nama_margin: item.nama_margin,
-            kode_margin: item.kode_margin,
-            nama_loss: item.nama_loss,
-            kode_loss: item.kode_loss,
-        };
+const showDialog = async (status, item) => {
+    if (status == 'approve_pic') {
+        dialogs.value = true;
+        statusdialog.value = status;
+        titledialogs.value = `APPROVE BAST <i class="pi pi-angle-double-right mx-2"></i> ${item.nomor}`;
+        datadialog.value = {bast: item.bast_fixed_assets};
     } else {
-        titledialogs.value = 'Edit User';
-        statusdialog.value = status
-        forms.value = {
-            id: item.id,
-            nama_margin: item.nama_margin,
-            kode_margin: item.kode_margin,
-            nama_loss: item.nama_loss,
-            kode_loss: item.kode_loss,
-        };
+        await BastLayout.printDocument()
+        // router.push(`/bast/${item.id}`)
     }
 }
 
 // Aksi Add & Update dari form Dialog
-const postDialog = () => {
+const postDialog = (status) => {
     // console.log(forms.value)
-    dialogs.value = false;
-    if (statusdialog.value == 'add') {
-        // console.log(statusdialog.value)
-        AdjustmentService.addAdjustment(forms.value).then(res => {
-            const load = res.data;
-            if (load.code == 200) {
-                toast.add({ severity: 'success', summary: 'Successfully', detail: `Data saved successfully`, life: 3000 });
-            } else {
-                toast.add({ severity: 'warn', summary: 'Caution', detail: `Process failed`, life: 3000 });
-            }
-        }).catch(error => {
-            console.error(error.response.status);
-            toast.add({ severity: 'danger', summary: 'Attention', detail: 'Unable to post data', life: 3000 });
-        })
-        setTimeout(() => {loadAdjustment();}, 3000);
-    } else if (statusdialog.value == 'delete') {
-        console.log(statusdialog.value)
+    if (status == 'approve') {
+        toast.add({ severity: 'success', summary: 'Successfully', detail: `Data approved successfully`, life: 3000 });
+        dialogs.value = false;
+    } else if (status == 'warn') {
+        toast.add({ severity: 'warn', summary: 'Caution', detail: `Process failed`, life: 3000 });
+        dialogs.value = false;
+    } else if (status == 'danger') {
+        toast.add({ severity: 'danger', summary: 'Attention', detail: 'Unable to post data', life: 3000 });
+        dialogs.value = false;
     } else {
-        AdjustmentService.updateAdjustment(forms.value.id,forms.value).then(res => {
-            const load = res.data;
-            if (load.code == 200) {
-                toast.add({ severity: 'success', summary: 'Successfully', detail: `Data saved successfully`, life: 3000 });
-                // setTimeout(loadUser(), 3000);
-            } else {
-                toast.add({ severity: 'warn', summary: 'Caution', detail: `Process failed`, life: 3000 });
-            }
-        }).catch(error => {
-            console.error(error.response.status);
-            toast.add({ severity: 'danger', summary: 'Attention', detail: 'Unable to post data', life: 3000 });
-        })
-        setTimeout(() => {loadAdjustment();}, 3000);
+        dialogs.value = false;
     }
+    
 }
 
 </script>
@@ -168,37 +152,11 @@ const postDialog = () => {
 <template>
     <div class="grid">
         <Toast/>
-        <Dialog v-model:visible="dialogs" :style="{ width: '450px' }" :modal="true">
+        <Dialog v-model:visible="dialogs" :style="{ width: '700px' }" :modal="true">
             <template #header>
-                <h4>{{titledialogs}}</h4>
+                <h4 v-html="titledialogs" class="font-normal"></h4>
             </template>
-            <div class="p-fluid formgrid grid" v-if="statusdialog != 'delete'">
-                <div class="field col-12 md:col-12">
-                    <label for="firstname2">Kode Margin</label>
-                    <InputText type="text" placeholder="Kode Margin" v-model="forms.kode_margin"/>
-                </div>
-                <div class="field col-12 md:col-12">
-                    <label for="firstname2">Nama Margin</label>
-                    <InputText type="text" placeholder="Nama Margin" v-model="forms.nama_margin"/>
-                </div>
-                <div class="field col-12 md:col-12">
-                    <label for="firstname2">Kode Loss</label>
-                    <InputText type="text" placeholder="Kode Loss" v-model="forms.kode_loss"/>
-                </div>
-                <div class="field col-12 md:col-12">
-                    <label for="firstname2">Nama Loss</label>
-                    <InputText type="text" placeholder="Nama Loss" v-model="forms.nama_loss"/>
-                </div>
-            </div>
-            <div class="p-fluid grid" v-else>
-                <div class="field col-12 md:col-12">
-                    <span>Apakah anda ingin menghapus <strong>{{ forms.name }}</strong> ?</span>
-                </div>
-            </div>
-            <template #footer>
-                <Button v-show="statusdialog != 'delete'" label="No" icon="pi pi-times" @click="dialogs = false" class="p-button-outlined p-button-danger" />
-                <Button label="Save" icon="pi pi-save" @click="postDialog" class="p-button-outlined p-button-success" autofocus :disabled="disablebtnchangepass" />
-            </template>
+            <approve-bast :status_dialog="statusdialog" :data_dialog="datadialog" @submit="postDialog" />
         </Dialog>
         <div class="col-12 md:col-12">
             <Breadcrumb :home="breadcrumbHome" :model="breadcrumbItems" class="bg-gray-300" />
@@ -207,7 +165,7 @@ const postDialog = () => {
             <div class="card">
                 <div class="grid">
                     <div class="col-12 md:col-6 sm:col-6">
-                        <h5>BA. Serah Terima</h5>
+                        <h5>MY ASSET</h5>
                     </div>
                 </div>
                 <!-- Datatable -->
@@ -215,7 +173,7 @@ const postDialog = () => {
                     <div class="col-12">
                         <h5 class="text-center font-normal" v-show="loadingTable !== null">{{ loadingTable }}</h5>
                         <ContextMenu ref="cm" :model="menuModel"/>
-                        <DataTable v-model:filters="filters" :value="listAdjustment" paginator showGridlines :rows="10" dataKey="id" contextMenu v-model:contextMenuSelection="selectedArea" @rowContextmenu="onRowContextMenu"
+                        <DataTable v-model:filters="filters" :value="listBast" paginator showGridlines :rows="10" dataKey="id" contextMenu v-model:contextMenuSelection="selectedArea" @rowContextmenu="onRowContextMenu"
                             filterDisplay="menu" :loading="loading" :globalFilterFields="['kode_loss', 'nama_loss', 'kode_margin', 'nama_margin']" v-show="loadingTable === null">
                             <template #header>
                                 <div class="flex justify-content-between align-items-center">
@@ -229,41 +187,34 @@ const postDialog = () => {
                             </template>
                             <template #empty> No customers found. </template>
                             <template #loading> Loading customers data. Please wait. </template>
-                            <Column field="no" header="No" style="min-width: 12rem">
+                            <Column field="nomor" header="Number" style="min-width: 12rem">
                                 <template #body="{ data }">
-                                    {{ data.no }}
+                                    <strong>{{ data.nomor }}</strong>
                                 </template>
                             </Column>
-                            <Column field="kode_margin" header="Kode Margin" style="min-width: 12rem">
+                            <Column field="brand" header="Brand" style="min-width: 12rem">
                                 <template #body="{ data }">
-                                    {{ data.kode_margin }}
-                                </template>
-                                <template #filter="{ filterModel }">
-                                    <InputText v-model="filterModel.value" type="text" class="p-column-filter" placeholder="Search by name" />
+                                    {{ data.brand }}
                                 </template>
                             </Column>
-                            <Column field="nama_margin" header="Nama Margin" style="min-width: 12rem">
+                            <Column field="nama" header="Tools Name" style="min-width: 12rem">
                                 <template #body="{ data }">
-                                    {{ data.nama_margin }}
-                                </template>
-                                <template #filter="{ filterModel }">
-                                    <InputText v-model="filterModel.value" type="text" class="p-column-filter" placeholder="Search by name" />
+                                    {{ data.nama }}
                                 </template>
                             </Column>
-                            <Column field="kode_loss" header="Kode Loss" style="min-width: 12rem">
+                            <Column field="location" header="Location" style="min-width: 12rem">
                                 <template #body="{ data }">
-                                    {{ data.kode_loss }}
-                                </template>
-                                <template #filter="{ filterModel }">
-                                    <InputText v-model="filterModel.value" type="text" class="p-column-filter" placeholder="Search by name" />
+                                    {{ data.location }}
                                 </template>
                             </Column>
-                            <Column field="nama_loss" header="Nama Loss" style="min-width: 12rem">
+                            <Column field="status1" header="Sign PIC" style="min-width: 12rem">
                                 <template #body="{ data }">
-                                    {{ data.nama_loss }}
+                                    {{ data.status1 }}
                                 </template>
-                                <template #filter="{ filterModel }">
-                                    <InputText v-model="filterModel.value" type="text" class="p-column-filter" placeholder="Search by name" />
+                            </Column>
+                            <Column field="status2" header="Sign Dept" style="min-width: 12rem">
+                                <template #body="{ data }">
+                                    {{ data.status2 }}
                                 </template>
                             </Column>
                         </DataTable>

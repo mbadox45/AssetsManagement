@@ -4,16 +4,16 @@ export default new class BastService{
     getBastByPIC(){
         return http.get('bast-fixed-asset/index-pic');
     }
-    getBastByPIC(id){
+    getBastPICByID(id){
         return http.get(`bast-fixed-asset/show-pic/${id}`);
     }
     getBastReject(id){
         return http.get(`bast-fixed-asset/reject/${id}`);
     }
-    getApproveAccept(){
-        return http.get('bast-fixed-asset/accept/1');
+    getApproveAccept(id_bast){
+        return http.get(`bast-fixed-asset/accept/${id_bast}`);
     }
-    getApproveCheck(){
-        return http.get(`bast-fixed-asset/check/1`);
+    getApproveCheck(id_bast){
+        return http.get(`bast-fixed-asset/check/${id_bast}`);
     }
 }

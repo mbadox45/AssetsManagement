@@ -54,12 +54,18 @@ const loadParams = async () => {
                         const load_akses = akses.data;
                         const data_akses = load_akses.data;
                         const filteredData = data_akses.filter(item => item.user_id === Number(idUser.value));
+                        console.log(filteredData);
                         if (filteredData.length > 0) {
                             const pushdata = {
                                 id :  idUser.value,
                                 email : data.email,
                                 name : data.name,
                                 level: filteredData[0].level_akses,
+                                divisi : data.divisi,
+                                departemen : data.departemen,
+                                department : data.department,
+                                division : data.division,
+                                grade : data.grade,
                             }
                             localStorage.setItem('roles', filteredData[0].level_akses);
                             localStorage.setItem('usertoken', token);
@@ -70,11 +76,12 @@ const loadParams = async () => {
                                 if (filteredData[0].level_akses === 10) {
                                     window.location.replace(`${URL_WEB}home`);
                                 } else {
-                                    window.location.replace(`${URL_WEB}beranda`);
+                                    window.location.replace(`${URL_WEB}home`);
                                 }
                             }, time.value);
                         } else {
-                            window.close();
+                            window.location.replace(`${URL_WEB}error`);
+                            // window.close();
                         }
                     } else {
                         window.close();

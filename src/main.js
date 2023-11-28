@@ -103,6 +103,9 @@ import VirtualScroller from 'primevue/virtualscroller';
 import CodeHighlight from '@/components/CodeHighlight.vue';
 import BlockViewer from '@/components/BlockViewer.vue';
 
+// Vue HTML 2 PDF
+// import Vue3Html2pdf  from 'vue3-html2pdf';
+
 // JSON to Excel for VUE 3
 import JsonExcel from "vue-json-excel3";
 // import ExportExcelSheetVueJs from "export-excel-sheet-vue-js";

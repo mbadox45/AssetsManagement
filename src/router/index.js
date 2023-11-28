@@ -11,34 +11,6 @@ const router = createRouter({
             redirect:'/home',
             children: [
                 // Distributor
-                {
-                    path: '/beranda',
-                    name: 'beranda',
-                    component: () => import('@/views/survey/distributor/Home/Index.vue'),
-                    meta:{
-                        requiresAuth: true,
-                        dept:true,
-                        user:true,
-                    }
-                },
-                {
-                    path: '/survey-user',
-                    name: 'survey-user',
-                    component: () => import('@/views/survey/distributor/Survey/Index.vue'),
-                    meta:{
-                        requiresAuth: true,
-                        dept:true,
-                    }
-                },
-                {
-                    path: '/update-password',
-                    name: 'update-password',
-                    component: () => import('@/views/survey/distributor/Profile/Index.vue'),
-                    meta:{
-                        requiresAuth: true,
-                        dept:true,
-                    }
-                },
 
                 {
                     path: '/serah-terima',
@@ -58,6 +30,8 @@ const router = createRouter({
                     meta:{
                         requiresAuth: true,
                         admin:true,
+                        dept:true,
+                        user:true,
                     }
                 },
 
@@ -112,16 +86,17 @@ const router = createRouter({
                 },
                 // Assets
                 {
-                    path: '/fixed-asset',
+                    path: '/fix-asset',
                     name: 'fixed-asset',
-                    component: () => import('@/views/asmen/aset/fixedassets/AssetDept.vue'),
+                    component: () => import('@/views/asmen/aset/fixedassets/Index.vue'),
                     meta:{
                         requiresAuth: true,
                         dept:true,
+                        admin:true,
                     }
                 },
                 {
-                    path: '/fix-asset',
+                    path: '/fixed-asset',
                     name: 'fix-asset',
                     component: () => import('@/views/asmen/aset/fixedassets/Index.vue'),
                     meta:{
@@ -169,6 +144,17 @@ const router = createRouter({
                 },
 
             ]
+        },
+        {
+            path: '/bast/:cond',
+            name: 'bast',
+            component: () => import('@/views/asmen/bast/components/BastLayout.vue'),
+            meta:{
+                requiresAuth: true,
+                admin:true,
+                dept:true,
+                user:true,
+            }
         },
         {
             path: '/sign-out',
@@ -220,13 +206,13 @@ router.beforeEach((to, from, next) => {
                 if (to.matched.some((route) => route.meta.dept)) {
                     next();
                 } else {
-                    next('/beranda');
+                    next('/home');
                 }
             } else {
                 if (to.matched.some((route) => route.meta.user)) {
                     next();
                 } else {
-                    next('/beranda');
+                    next('/home');
                 }
             }
         } else {
@@ -237,9 +223,9 @@ router.beforeEach((to, from, next) => {
             if (roles == 10) {
                 next('/home');
             } else if (roles == 8) {
-                next('/beranda');
+                next('/home');
             } else {
-                next('/beranda');
+                next('/home');
             }
         } else {
             next();

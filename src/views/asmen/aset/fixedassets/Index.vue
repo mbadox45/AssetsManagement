@@ -14,6 +14,7 @@ import moment from 'moment';
 import DialogAsset from './components/DialogAsset.vue';
 import DetailAsset from './components/DetailAsset.vue';
 import FormEditAsset from './components/FormEditAsset.vue';
+import ApproveBast from '../../bast/components/ApproveBast.vue';
 
 
 // Variable
@@ -104,14 +105,14 @@ const loadMenuAction = () => {
             { separator: true },
             {label: 'Calculate Initial Balance', icon: 'pi pi-fw pi-calculator', command: () => showDialog('calculate',selectedAsset.value)},
             {label: 'Asset Value', icon: 'pi pi-fw pi-money-bill', command: () => showDialog('value',selectedAsset.value)},
-            {label: 'BAST', icon: 'pi pi-fw pi-file', command: () => viewAssets('bast',selectedAsset)},
+            {label: 'BAST', icon: 'pi pi-fw pi-file', command: () => showDialog('approve_dept',selectedAsset)},
         ]
     } else {
         menuModel.value = [
             {label: 'View Details', icon: 'pi pi-fw pi-search', command: () => showDialog('detail',selectedAsset.value)},
             {label: 'Edit', icon: 'pi pi-fw pi-pencil', command: () => showDialog('edit',selectedAsset.value)},
             { separator: true },
-            {label: 'BAST', icon: 'pi pi-fw pi-file', command: () => viewAssets('bast',selectedAsset)},
+            {label: 'BAST', icon: 'pi pi-fw pi-file', command: () => showDialog('approve_dept',selectedAsset.value)},
         ]
     }
 }
@@ -224,7 +225,7 @@ const loadAsset = async () => {
                     id_departemen : data[i].id_departemen,
                     keterangan : data[i].keterangan,
                     spesifikasi: data[i].spesifikasi,
-                    bast_fixed_assets: data[i].bast_fixed_assets
+                    bast_fixed_assets: data[i].bast_fixed_assets != null ? data[i].bast_fixed_assets[(data[i].bast_fixed_assets.length) - 1] : data[i].bast_fixed_assets
                 };
             }
         }
@@ -295,9 +296,11 @@ const showDialog = async (status, item) => {
         titledialogs.value = `CALCULATE INITIAL BALANCE <i class="pi pi-angle-double-right mx-2"></i> ${item.nomor}`;
         datadialog.value = item.calculateInitialBalance;
     } else if (status === 'value') {
-        // Title Dialog
         titledialogs.value = `ASSET VALUE <i class="pi pi-angle-double-right mx-2"></i> ${item.nomor}`;
         datadialog.value = {fair_value: item.fair_values, value_in_uses: item.value_in_uses, id_asset:item.id};
+    } else if (status === 'approve_dept') {
+        titledialogs.value = `APPROVE BAST <i class="pi pi-angle-double-right mx-2"></i> ${item.nomor}`;
+        datadialog.value = {bast: item.bast_fixed_assets, assetUserName: item.assetUserName};
     } else {
         titledialogs.value = `EDIT ASSET <i class="pi pi-angle-double-right mx-2"></i> ${item.nomor}`;
         datadialog.value = item;
@@ -309,6 +312,9 @@ const hideDialog = (status) => {
     if (status === 'save') {
         dialogs.value = false
         toast.add({ severity: 'success', summary: 'Successfully', detail: `Data saved successfully`, life: 3000 });
+    } else if (status === 'approve') {
+        dialogs.value = false
+        toast.add({ severity: 'success', summary: 'Successfully', detail: `Data approved successfully`, life: 3000 });
     } else if (status === 'warning') {
         dialogs.value = false;
         toast.add({ severity: 'warn', summary: 'Caution', detail: `Process failed`, life: 3000 });
@@ -325,7 +331,7 @@ const hideDialog = (status) => {
 <template>
     <div class="grid">
         <Toast/>
-        <Dialog v-model:visible="dialogs" :style="{ width: '1100px' }" :modal="true">
+        <Dialog v-model:visible="dialogs" :style="{ width: statusdialog == 'approve_dept' ? '700px' : '1100px' }" :modal="true">
             <template #header>
                 <h4 class="font-normal" v-html="titledialogs"></h4>
             </template>
@@ -335,6 +341,9 @@ const hideDialog = (status) => {
             </div>
             <div v-else-if="statusdialog === 'edit'">
                 <form-edit-asset :status_dialog="statusdialog" :data_dialog="datadialog" @submit="hideDialog" ></form-edit-asset>
+            </div>
+            <div v-else-if="statusdialog === 'approve_dept'">
+                <approve-bast :status_dialog="statusdialog" :data_dialog="datadialog" @submit="hideDialog" />
             </div>
             <div v-else>
                 <dialog-asset :status_dialog="statusdialog" :data_dialog="datadialog" ></dialog-asset>
