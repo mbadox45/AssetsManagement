@@ -236,7 +236,7 @@ const loadAsset = async () => {
         
         listGroup.value = list;
     } catch (error) {
-        loadingTable.value = 'Unauthorized access';
+        loadingTable.value = 'Data Not Found';
         listGroup.value = [];
     }
 }

@@ -217,7 +217,7 @@ const loadMIS = async () => {
         // Selection Data
         const listSupplier = [];
         for (let i = 0; i < mis_data.length; i++) {
-            listSupplier[i] = {nama: `${mis_data[i].name}`, id_mis: mis_data[i].name}
+            listSupplier[i] = {nama: `${mis_data[i].id} - ${mis_data[i].name}`, id_mis: mis_data[i].name}
         }
         list_mis.value = listSupplier;
     } catch (error) {
