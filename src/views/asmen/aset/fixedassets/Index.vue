@@ -337,7 +337,7 @@ const hideDialog = (status) => {
             </template>
             <!-- Body -->
             <div v-if="statusdialog === 'detail'">
-                <detail-asset :status_dialog="statusdialog" :data_dialog="datadialog" ></detail-asset>
+                <detail-asset :status_dialog="statusdialog" :data_dialog="datadialog" :tgl="tanggal" ></detail-asset>
             </div>
             <div v-else-if="statusdialog === 'edit'">
                 <form-edit-asset :status_dialog="statusdialog" :data_dialog="datadialog" @submit="hideDialog" ></form-edit-asset>

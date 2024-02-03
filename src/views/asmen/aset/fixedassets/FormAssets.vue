@@ -13,6 +13,7 @@ import StockPickingService from '@/api/StockPickingService';
 import AdjustmentService from '@/api/AdjustmentService';
 import UserService from '@/api/UserService';
 import AssetsService from '@/api/AssetsService';
+import { URL_API } from '@/api/env';
 import { formAsset, settingPertanyaan, BreadcrumbHome, listKondisi, listCostCentre } from '@/api/DataVariable';
 
 // Component
@@ -50,6 +51,7 @@ const list_cost_centre = ref(listCostCentre);
 const list_supplier = ref([])
 const list_adjustment = ref([])
 const list_mis = ref([])
+const list_mis2 = ref([])
 
 const list_gambar = ref([])
 const status_gambar = ref(true)
@@ -104,7 +106,7 @@ const loadAsset = async() => {
             tgl_perolehan: data.tgl_perolehan,
             nilai_perolehan: Number(data.nilai_perolehan),
             nilai_depresiasi_awal: Number(data.nilai_depresiasi_awal),
-            id_mis: Number(data.id_mis),
+            id_mis: data.id_mis,
             id_lokasi: data.id_lokasi,
             id_departemen: Number(data.id_departemen),
             id_pic: Number(data.id_pic),
@@ -116,7 +118,10 @@ const loadAsset = async() => {
             fairValue: data.fair_values[0].nilai,
             valueInUse: data.value_in_uses[0].nilai,
         }
-        const spek = data.spesifikasi;
+        const spek = data.spesifikasi.map(item => JSON.parse(item));
+        const foto = data.foto_fixed_assets;
+
+        // Spek
         const list =[];
         for (let i = 0; i < spek.length; i++) {
             list[i] = {
@@ -124,6 +129,16 @@ const loadAsset = async() => {
             }
         }
         forms_spesifikasi.value = list;
+
+        // // Foto
+        // const list_foto =[];
+        // for (let i = 0; i < foto.length; i++) {
+        //     list_foto[i] = {
+        //         id: foto[i].id, name: foto[i].nama_file, img: `${URL_API.replace('/api/', '/')}storage/upload/foto/${foto[i].nama_file}`,
+        //     }
+        // }
+        // list_gambar.value = list_foto
+
         cekKondisiAsset();
         cekDepresiasi(data.fair_values[0].nilai, data.value_in_uses[0].nilai);
     } catch (error) {
@@ -224,6 +239,12 @@ const loadMIS = async () => {
         list_mis.value = [];
         console.error('Error fetching data:', error);
     }
+}
+
+const loadAfterMIS = (event) => {
+    const load = list_mis.value.filter(item => item.nama.includes(event.query.toUpperCase()))
+    list_mis2.value = load
+    // console.log(load, event)
 }
 
 const loadSupplier = async () => {
@@ -412,6 +433,7 @@ const showFile = () => {
         const list = []
         for (let i = 0; i < selectedFile.length; i++) {
             list[i] = {
+                id: i+1,
                 name: selectedFile[i].name,
                 img : selectedFile[i]
             }
@@ -425,7 +447,11 @@ const showFile = () => {
     }
 }
 
-const postDialog = () => {
+const getImageUrl = (file) => {
+    return URL.createObjectURL(file);
+};
+
+const postDialog = async () => {
     // fill data in var array condition
     forms.value.spesifikasi = forms_spesifikasi.value;
     let formData = new FormData();
@@ -455,14 +481,16 @@ const postDialog = () => {
     forms_spesifikasi.value.forEach((item, index) => {
         formData.append(`spesifikasi[${index}]`, JSON.stringify(item));
     });
-    const list = list_gambar.value;
-    if (list.length > 0) {
-        for (let i = 0; i < list.length; i++) {
-            formData.append(`foto[${i}]`, list[i].img);
-        }
-        try {
+    if (forms.value.id_grup != null && forms.value.id_sub_grup != null && forms.value.nama != '' && forms.value.brand != '' && forms.value.masa_manfaat != '' && forms.value.tgl_perolehan != '' && forms.value.nilai_perolehan != null && forms.value.nilai_depresiasi_awal != null && forms.value.id_lokasi != null && forms.value.id_mis != null && forms.value.id_departemen != null && forms.value.id_pic != null && forms.value.cost_centre != '' && forms.value.kondisi != '' && forms.value.keterangan != '' && forms.value.id_supplier != null && forms.value.id_kode_adjustment != null) {
+        const list = list_gambar.value;
+        if (list.length > 0) {
+            for (let i = 0; i < list.length; i++) {
+                // const fileInput = document.getElementById(list[i].name);
+                // formData.append(`foto[${i}]`, fileInput.files[0]);
+                formData.append(`foto[${i}]`, list[i].img);
+            }
             if (params == 'add') {
-                AssetsService.addAssets(formData).then(res => {
+                await AssetsService.addAssets(formData).then(res => {
                     const load = res.data;
                     if (load.code == 200) {
                         toast.add({ severity: 'success', summary: 'Successfully', detail: `Data saved successfully`, life: 3000 });
@@ -476,7 +504,7 @@ const postDialog = () => {
                     toast.add({ severity: 'danger', summary: 'Attention', detail: 'Unable to post data', life: 3000 });
                 })
             } else if (params == 'edit') {
-                AssetsService.updateAssets(forms.value.id, formData).then(res => {
+                await AssetsService.updateAssets(forms.value.id, formData).then(res => {
                     const load = res.data;
                     if (load.code == 200) {
                         toast.add({ severity: 'success', summary: 'Successfully', detail: `Data saved successfully`, life: 3000 });
@@ -495,11 +523,11 @@ const postDialog = () => {
                 toast.add({ severity: 'success', summary: 'Successfully', detail: `Delete successfully`, life: 3000 });
                 resetForm();
             }
-        } catch (error) {
-            toast.add({ severity: 'danger', summary: 'Attention', detail: `Please calling IT Team`, life: 3000 });
+        } else {
+            toast.add({ severity: 'warn', summary: 'Attention', detail: `Please entry your images`, life: 3000 });
         }
     } else {
-        toast.add({ severity: 'warn', summary: 'Attention', detail: `Please entry your images`, life: 3000 });
+        toast.add({ severity: 'warn', summary: 'Attention', detail: `Please complete your data`, life: 3000 });
     }
 }
 
@@ -571,7 +599,8 @@ const postDialog = () => {
                         </div>
                         <div class="field col-12 md:col-4">
                             <label for="firstname2">MIS <span class="text-red-500">*</span></label>
-                            <Dropdown v-model="forms.id_mis" :options="list_mis" filter optionLabel="nama" optionValue="id_mis" placeholder="Select a MIS"></Dropdown>
+                            <AutoComplete v-model="forms.id_mis" :suggestions="list_mis2" optionLabel="nama" optionValue="id_mis" @complete="loadAfterMIS" />
+                            <!-- <Dropdown v-model="forms.id_mis" :options="list_mis" filter optionLabel="nama" optionValue="id_mis" placeholder="Select a MIS"></Dropdown> -->
                         </div>
                         <div class="field col-12 md:col-4">
                             <label for="firstname2">Lokasi <span class="text-red-500">*</span></label>
@@ -621,10 +650,10 @@ const postDialog = () => {
                         <div class="field col-12 md:col-12">
                             <label for="foto" class="font-semibold">Capture <span class="text-red-500">*</span> <i class="pi pi-file-import ml-2 text-gray-500"></i></label>
                             <InputText type="file" placeholder="Exp: clothes, files, laptop, etc.." name="lampiran" id="fileInput" accept="image/*" multiple @change="showFile()"/>
-                            <!-- <button type="file" name="lampiran" id="fileInput" accept="image/*" multiple @change="showFile()">Test</button> -->
                             <!-- <div class="flex flex-row gap-3 mt-2" v-show="status_gambar == false">
                                 <div v-for="(list, index) in list_gambar" :key="index" class="flex flex-column">
                                     <span><i class="pi pi-image mr-2"></i>{{ list.name }}</span>
+                                    <Image :src="getImageUrl(list.img)" :alt="list.name" width="50" :id="list.name" />
                                 </div>
                             </div>
                             <div v-show="status_gambar == true" class="text-center text-gray-400">Gambar tidak tersedia</div> -->
