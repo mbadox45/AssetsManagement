@@ -508,13 +508,6 @@ const postDialog = async () => {
                     for (let i = 0; i < list.length; i++) {
                         formData.append(`foto[${i}]`, list[i].img);
                     }
-                } else {
-                    for (let i = 0; i < list.length; i++) {
-                        const res = await fetch(list[i].img);
-                        const imageBlob = await res.blob();
-                        const fileName = list[i].name.split('/').pop();
-                        formData.append(`foto[${i}]`, imageBlob, fileName);
-                    }
                 }
                 await AssetsService.updateAssets(forms.value.id, formData).then(res => {
                     const load = res.data;
