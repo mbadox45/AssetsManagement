@@ -119,7 +119,7 @@ const loadAsset = async() => {
             valueInUse: data.value_in_uses[0].nilai,
         }
         const spek = data.spesifikasi.map(item => JSON.parse(item));
-        const foto = data.foto_fixed_assets;
+        const foto = data.fotoFixedAssets;
 
         // Spek
         const list =[];
@@ -130,14 +130,15 @@ const loadAsset = async() => {
         }
         forms_spesifikasi.value = list;
 
-        // // Foto
-        // const list_foto =[];
-        // for (let i = 0; i < foto.length; i++) {
-        //     list_foto[i] = {
-        //         id: foto[i].id, name: foto[i].nama_file, img: `${URL_API.replace('/api/', '/')}storage/upload/foto/${foto[i].nama_file}`,
-        //     }
-        // }
-        // list_gambar.value = list_foto
+        // Foto
+        const list_foto =[];
+        for (let i = 0; i < foto.length; i++) {
+            list_foto[i] = {
+                id: foto[i].id, name: foto[i].nama_file, img: `${URL_API.replace('/api/', '/')}storage/upload/foto/${foto[i].nama_file}`,
+            }
+        }
+        list_gambar.value = list_foto
+        console.log(list_foto)
 
         cekKondisiAsset();
         cekDepresiasi(data.fair_values[0].nilai, data.value_in_uses[0].nilai);
@@ -485,8 +486,6 @@ const postDialog = async () => {
         const list = list_gambar.value;
         if (list.length > 0) {
             for (let i = 0; i < list.length; i++) {
-                // const fileInput = document.getElementById(list[i].name);
-                // formData.append(`foto[${i}]`, fileInput.files[0]);
                 formData.append(`foto[${i}]`, list[i].img);
             }
             if (params == 'add') {
@@ -504,6 +503,19 @@ const postDialog = async () => {
                     toast.add({ severity: 'danger', summary: 'Attention', detail: 'Unable to post data', life: 3000 });
                 })
             } else if (params == 'edit') {
+                const fileInput = document.getElementById('fileInput');
+                if (fileInput.files.length > 0) {
+                    for (let i = 0; i < list.length; i++) {
+                        formData.append(`foto[${i}]`, list[i].img);
+                    }
+                } else {
+                    for (let i = 0; i < list.length; i++) {
+                        const res = await fetch(list[i].img);
+                        const imageBlob = await res.blob();
+                        const fileName = list[i].name.split('/').pop();
+                        formData.append(`foto[${i}]`, imageBlob, fileName);
+                    }
+                }
                 await AssetsService.updateAssets(forms.value.id, formData).then(res => {
                     const load = res.data;
                     if (load.code == 200) {
