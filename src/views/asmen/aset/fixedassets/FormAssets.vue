@@ -134,7 +134,7 @@ const loadAsset = async() => {
         const list_foto =[];
         for (let i = 0; i < foto.length; i++) {
             list_foto[i] = {
-                id: foto[i].id, name: foto[i].nama_file, img: `${URL_API.replace('/api/', '/')}storage/upload/foto/${foto[i].nama_file}`,
+                id: foto[i].id, name: foto[i].nama_file, img: `${foto[i].nama_file}`,
             }
         }
         list_gambar.value = list_foto
