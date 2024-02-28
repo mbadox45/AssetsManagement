@@ -201,7 +201,7 @@ const postDialog = () => {
                         <h5>List Supplier</h5>
                     </div>
                     <div class="col-6 md:col-6 sm:col-6 text-right">
-                        <!-- <Button severity="info" size="small" icon="pi pi-plus" outlined label="Add Supplier" @click="showDialog('add','')" /> -->
+                        <Button severity="info" size="small" icon="pi pi-plus" outlined label="Add Supplier" @click="showDialog('add','')" />
                     </div>
                 </div>
                 <!-- Datatable -->
