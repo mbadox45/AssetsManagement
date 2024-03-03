@@ -168,11 +168,11 @@ const loadAsset = async () => {
                     id:data[i].id,
                     nama: data[i].nama,
                     brand: data[i].brand,
+                    nomor: data[i].nomor,
                     assetUserName: data[i].assetUserName,
                     assetAge: data[i].assetAge,
                     masa_manfaat: data[i].masa_manfaat,
                     sisa_masa_manfaat: Number(data[i].masa_manfaat) - data[i].assetAge,
-                    nomor: data[i].nomor,
                     tgl_perolehan: moment(data[i].tgl_perolehan).format('DD MMM YYYY'),
                     id_pic : data[i].id_pic,
                     id_lokasi : data[i].id_lokasi,
@@ -185,9 +185,10 @@ const loadAsset = async () => {
                     endMasaManfaatDate: moment(data[i].endMasaManfaatDate).format('DD MMM YYYY'),
                     accumulatedDepreciation: data[i].accumulatedDepreciation,
                     bookValue: data[i].bookValue,
+                    location: data[i].location.nama,
                     formated_kode_penyusutan: data[i].formated_kode_penyusutan,
                     formated_kode_aktiva: data[i].formated_kode_aktiva,
-                    supplier: data[i].assetSupplier.commercial_company_name,
+                    supplier: data[i].supplier,
                     cost_centre: data[i].cost_centre,
                     fair_values: data[i].fair_values,
                     value_in_uses: data[i].value_in_uses,
@@ -195,7 +196,6 @@ const loadAsset = async () => {
                     nilai_depresiasi_awal: data[i].nilai_depresiasi_awal,
                     monthlyDepreciation: data[i].monthlyDepreciation,
                     annualDepreciation: data[i].annualDepreciation,
-                    location: data[i].location.nama,
                     calculateInitialBalance: convertedData,
                     adjustment_kode_loss: data[i].adjustment.kode_loss,
                     adjustment_nama_loss: data[i].adjustment.nama_loss,
@@ -206,16 +206,18 @@ const loadAsset = async () => {
                 if (data[i].status === 1) {
                     total += data[i].nilai_perolehan;
                 }
+                // console.log(data[i].supplier)
+
             } else {
                 list[i] = {
                     id:data[i].id,
                     nama: data[i].nama,
                     brand: data[i].brand,
+                    nomor: data[i].nomor,
                     assetUserName: data[i].assetUserName,
                     assetAge: data[i].assetAge,
                     masa_manfaat: data[i].masa_manfaat,
                     sisa_masa_manfaat: Number(data[i].masa_manfaat) - data[i].assetAge,
-                    nomor: data[i].nomor,
                     tgl_perolehan: moment(data[i].tgl_perolehan).format('DD MMM YYYY'),
                     id_pic : data[i].id_pic,
                     id_lokasi : data[i].id_lokasi,
@@ -225,7 +227,8 @@ const loadAsset = async () => {
                     id_departemen : data[i].id_departemen,
                     keterangan : data[i].keterangan,
                     spesifikasi: data[i].spesifikasi,
-                    bast_fixed_assets: data[i].bast_fixed_assets != null ? data[i].bast_fixed_assets[(data[i].bast_fixed_assets.length) - 1] : data[i].bast_fixed_assets
+                    bast_fixed_assets: null
+                    // bast_fixed_assets: data[i].bast_fixed_assets != null ? data[i].bast_fixed_assets[(data[i].bast_fixed_assets.length) - 1] : data[i].bast_fixed_assets
                 };
             }
         }
@@ -233,6 +236,7 @@ const loadAsset = async () => {
         if (roles.value > 8) {
             total_nilai_perolehan.value = formatCurrency(total);
         }
+        // console.log(list)
         
         listGroup.value = list;
     } catch (error) {
@@ -401,7 +405,6 @@ const hideDialog = (status) => {
                             <!-- Headers Posisition -->
                             <ColumnGroup type="header">
                                 <Row>
-                                    <!-- <Column expander frozen style="width: 5rem" :rowspan="2" header="#"></Column> -->
                                     <Column field="nomor" frozen sortable :rowspan="2">
                                         <template #header>
                                             <span class="text-xs">Nomor</span>
@@ -502,7 +505,6 @@ const hideDialog = (status) => {
                             </ColumnGroup>
 
                             <!-- Body Posisition -->
-                            <!-- <Column frozen expander style="width: 5rem"></Column> -->
                             <Column field="nomor" frozen style="min-width: 3rem" sortable >
                                 <template #body="{data}">
                                     <strong class="text-sm">{{ data.nomor }}</strong>

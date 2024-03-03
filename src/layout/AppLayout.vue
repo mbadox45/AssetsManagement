@@ -136,8 +136,8 @@ const parseJwt = (token) => {
             </div>
             <app-footer></app-footer>
         </div>
-        <app-config></app-config>
-        <div class="layout-mask"></div>
+        <!-- <app-config></app-config> -->
+        <!-- <div class="layout-mask"></div> -->
     </div>
 </template>
 

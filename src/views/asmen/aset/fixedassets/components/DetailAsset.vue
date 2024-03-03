@@ -145,7 +145,7 @@
                             <div class="col-4">Usia Asset</div>
                             <div class="col-8">: {{ list_data.assetAge }} Bulan</div>
                             <div class="col-4" v-show="roles > 8">Supplier</div>
-                            <div class="col-8" v-show="roles > 8">: <strong>{{ list_data.assetSupplier.commercial_company_name }}</strong></div>
+                            <div class="col-8" v-show="roles > 8">: <strong>{{ list_data.supplier.nama }}</strong></div>
                             <div class="col-4">MIS</div>
                             <div class="col-8">: {{ list_data.assetMIS }}</div>
                         </div>
