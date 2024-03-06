@@ -257,7 +257,7 @@ const loadSupplier = async () => {
         // Selection Data
         const listSupplier = [];
         for (let i = 0; i < supplier_data.length; i++) {
-            listSupplier[i] = {nama: `${supplier_data[i].commercial_partner_id} - ${supplier_data[i].name}`, id_supplier: supplier_data[i].id}
+            listSupplier[i] = {nama: `${supplier_data[i].kode} - ${supplier_data[i].nama}`, id_supplier: supplier_data[i].id}
         }
         list_supplier.value = listSupplier;
     } catch (error) {

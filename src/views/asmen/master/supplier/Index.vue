@@ -54,9 +54,9 @@ const loadSupplier = async () => {
             list[i] = {
                 no : i+1,
                 id : data[i].id,
-                nama : data[i].name,
-                kode : data[i].commercial_partner_id,
-                keterangan : data[i].email,
+                nama : data[i].nama,
+                kode : data[i].kode,
+                keterangan : data[i].keterangan,
             }
         }
         listSupplier.value = list;
