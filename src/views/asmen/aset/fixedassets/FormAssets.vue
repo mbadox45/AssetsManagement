@@ -152,7 +152,7 @@ const loadDropdown = async () => {
     let endTime = null;
     loading.value = 'loading';
 
-    await loadMIS();
+    // await loadMIS();
     await loadSupplier();
     await loadAdjustment();
     await loadGroup();
